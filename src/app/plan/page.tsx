@@ -367,6 +367,23 @@ ${plans[session]}
     document.body.removeChild(element);
   };
 
+  // 마크다운 문법을 제거하고 일반 텍스트로 변환하는 함수
+  const convertMarkdownToPlainText = (content: string) => {
+    if (!content) return '';
+    
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '$1') // **볼드** → 볼드
+      .replace(/\*(.*?)\*/g, '$1') // *이탤릭* → 이탤릭
+      .replace(/#{1,6}\s+/g, '') // # 제목 → 제목
+      .replace(/^[-•]\s+/gm, '') // - 목록 → 목록
+      .replace(/^\d+\.\s+/gm, '') // 1. 번호목록 → 번호목록
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [링크](url) → 링크
+      .replace(/`([^`]+)`/g, '$1') // `코드` → 코드
+      .replace(/~~(.*?)~~/g, '$1') // ~~취소선~~ → 취소선
+      .replace(/\n{3,}/g, '\n\n') // 연속된 빈 줄 정리
+      .trim();
+  };
+
   // 지도안 텍스트를 구조화된 HTML로 변환하는 함수
   const formatLessonPlan = (content: string) => {
     if (!content) return null;
@@ -620,7 +637,7 @@ ${plans[session]}
                    <h3 className="text-lg font-semibold text-ink">{session} 수업지도안</h3>
                    <div className="flex gap-2">
                      <button 
-                       onClick={() => navigator.clipboard.writeText(plans[session])}
+                       onClick={() => navigator.clipboard.writeText(convertMarkdownToPlainText(plans[session]))}
                        className="btn-primary text-sm"
                      >
                        📋 복사하기
@@ -646,7 +663,7 @@ ${plans[session]}
                      <div className="flex justify-between items-center mb-3">
                        <h4 className="font-semibold text-green-800">{session} 학생 활동지</h4>
                        <button
-                         onClick={() => navigator.clipboard.writeText(worksheets[session])}
+                         onClick={() => navigator.clipboard.writeText(convertMarkdownToPlainText(worksheets[session]))}
                          className="btn-ghost text-sm"
                        >
                          📋 복사
