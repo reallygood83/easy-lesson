@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLessonStore } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
-
 // html2pdf 최소 타입 정의
 type Html2PdfOptions = {
   margin: number;
@@ -58,7 +57,29 @@ export default function PlanStep() {
         .map(([k]) => `- ${k}`)
         .join("\n");
 
-      const templatePrompt = `다음은 초등 ${gradeBand}학년 대상 융합교육 수업지도안 템플릿입니다.\n\n[성취기준]\n${standardsText}\n\n[교사 피드백 옵션]\n${feedbackFlags || "(없음)"}\n\n[요구사항]\n- 3차시 구성\n- 활동 중심, 평가 기준 포함\n- 워크시트 구조에 맞춰 Markdown 형식으로 작성`;
+      const templatePrompt = `다음 시나리오를 기반으로 초등 ${gradeBand}학년 대상 3차시 수업지도안을 작성하세요.
+
+[시나리오]
+${scenario}
+
+[성취기준]
+${standardsText}
+
+[교사 피드백 옵션]
+${feedbackFlags || "(없음)"}
+
+[요구사항]
+- 반드시 위 시나리오의 내용과 연계된 지도안 작성
+- 3차시 구성 (1차시, 2차시, 3차시 각각 명확히 구분)
+- 각 차시별로 다음 항목 포함:
+  * 차시명
+  * 학습목표
+  * 준비물
+  * 단계별 활동 (도입-전개-정리)
+  * 평가 기준
+- 시나리오에서 제시된 AI 도구와 융합 교과 활용
+- 복사하기 쉬운 텍스트 형식으로 작성 (마크다운 문법 최소화)
+- 각 차시는 명확한 구분선으로 분리`;
 
       const response = await generate(templatePrompt, { temperature: 0.5, maxTokens: 4096 });
       setPlan(response);
@@ -215,11 +236,37 @@ export default function PlanStep() {
           {error && <p className="text-red-600 text-sm">{error}</p>}
         </div>
 
-        {/* 결과 표시 */}
-        <div className="card p-6">
-          <h3 className="font-semibold mb-4">생성된 수업지도안</h3>
-          <pre className="prose max-w-none whitespace-pre-wrap">{plan}</pre>
-        </div>
+        {/* 생성된 지도안 표시 */}
+        {plan && (
+          <div className="card p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">생성된 수업지도안 (3차시)</h3>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => navigator.clipboard.writeText(plan)}
+                  className="btn-primary text-sm"
+                >
+                  📋 복사하기
+                </button>
+                <button onClick={downloadMarkdown} className="btn-secondary text-sm">
+                  📄 Markdown
+                </button>
+                <button onClick={downloadPDF} className="btn-secondary text-sm">
+                  📄 PDF
+                </button>
+                <button onClick={downloadDocx} className="btn-secondary text-sm">
+                  📄 DOCX
+                </button>
+              </div>
+            </div>
+            <div className="bg-white border rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-auto max-h-96">
+              {plan}
+            </div>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+              💡 <strong>사용 팁:</strong> 위 지도안을 복사하여 워드나 한글 문서에 붙여넣기 하세요. 각 차시별로 구분되어 있어 편집하기 쉽습니다.
+            </div>
+          </div>
+        )}
       </div>
     </WizardStep>
   );
