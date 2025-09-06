@@ -461,7 +461,7 @@ ${plans[session]}
     
     const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
     
-    const children: any[] = [];
+    const children: InstanceType<typeof Paragraph>[] = [];
     
     Object.entries(plans)
       .filter(([, content]) => content)
