@@ -5,11 +5,13 @@ import { useLessonStore, LessonIdea } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 import LoadingModal from "@/components/LoadingModal";
+import { useRouter } from "next/navigation";
 
 export default function IdeaStep() {
   const { nextStep } = useLessonStore();
   const { keywords, gradeBand, ideas, setKeywords, setGradeBand, setIdeas, setSelectedIdea, setStep1Valid } = useLessonStore();
   const { generate, loading, error } = useGemini();
+  const router = useRouter();
   const [inputKeywords, setInputKeywords] = useState("");
   const [localIdeas, setLocalIdeas] = useState(ideas); // 로컬 상태로 UI 관리
   const [selectedIdeaId, setSelectedIdeaId] = useState<number | null>(null);
@@ -192,8 +194,14 @@ export default function IdeaStep() {
                   취소
                 </button>
                 <button
-                  onClick={confirmSelection}
+                  onClick={() => {
+                    if (selectedIdeaId) {
+                      confirmSelection();
+                      router.push('/scenario');
+                    }
+                  }}
                   className="flex-1 btn-primary"
+                  disabled={!selectedIdeaId}
                 >
                   확인 및 이동
                 </button>

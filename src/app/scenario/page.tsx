@@ -7,6 +7,7 @@ import { WizardStep } from "@/components/Wizard";
 import LoadingModal from "@/components/LoadingModal";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useRouter } from "next/navigation";
 
 // 타입 정의 (StandardsPicker에서 가져온 타입)
 type StandardItem = {
@@ -20,6 +21,7 @@ type StandardItem = {
 export default function ScenarioStep() {
   const { selectedIdea, keywords, gradeBand, scenario, feedback, feedbackOptions, autoStandards, setScenario, setFeedback, setFeedbackOptions, setAutoStandards, setValidation, setStep3Valid, prevStep } = useLessonStore();
   const { generate, loading, error } = useGemini();
+  const router = useRouter();
   const [generating, setGenerating] = useState(false);
   const [feedbackText, setFeedbackText] = useState(feedback);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -377,8 +379,12 @@ AI 윤리 고려, 협력 활동 강조.`;
                     alert('시나리오를 먼저 생성해주세요.');
                     return;
                   }
-                  // 시나리오가 이미 저장소에 저장되어 있으므로 바로 이동
-                  window.location.href = '/plan';
+                  if (scenario) {
+                    // 시나리오를 스토어에 저장
+                    setScenario(scenario);
+                    // 지도안 페이지로 이동
+                    router.push('/plan');
+                  }
                 }}
                 className="btn-primary flex-1"
                 disabled={!scenario || generating}
