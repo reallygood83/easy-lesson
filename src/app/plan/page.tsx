@@ -32,6 +32,16 @@ export default function PlanStep() {
     "2차시": false,
     "3차시": false
   });
+  const [worksheets, setWorksheets] = useState<{[key: string]: string}>({
+    "1차시": "",
+    "2차시": "",
+    "3차시": ""
+  });
+  const [generatingWorksheet, setGeneratingWorksheet] = useState<{[key: string]: boolean}>({
+    "1차시": false,
+    "2차시": false,
+    "3차시": false
+  });
   const [feedbackOptions] = useState({
     "구체적 활동 예시 추가": false,
     "평가 루브릭 상세화": false,
@@ -126,10 +136,72 @@ ${feedbackFlags || "(없음)"}
     }
   };
 
+  const generateWorksheet = async (session: string) => {
+    if (!plans[session]) {
+      alert(`${session} 지도안을 먼저 생성해주세요.`);
+      return;
+    }
+
+    setGeneratingWorksheet(prev => ({ ...prev, [session]: true }));
+
+    try {
+      const worksheetPrompt = `다음 ${session} 수업지도안을 바탕으로 학생 활동지를 작성해주세요.
+
+수업지도안:
+${plans[session]}
+
+다음 형식으로 ${session} 학생 활동지를 작성해주세요:
+
+# ${session} 학생 활동지
+
+## 학습 목표
+[이번 시간에 배울 내용]
+
+## 활동 1: [활동명]
+### 지시사항
+[학생이 해야 할 일을 구체적으로 설명]
+
+### 활동 내용
+[빈칸, 표, 그림 그리기 공간 등]
+
+## 활동 2: [활동명]
+### 지시사항
+[학생이 해야 할 일을 구체적으로 설명]
+
+### 활동 내용
+[빈칸, 표, 그림 그리기 공간 등]
+
+## 정리하기
+### 오늘 배운 내용
+- [ ] 
+- [ ] 
+- [ ] 
+
+### 느낀 점
+[자유롭게 작성할 수 있는 공간]
+
+학생들이 직접 작성하고 활동할 수 있는 구체적인 활동지로 만들어주세요.`;
+
+      const result = await generate(worksheetPrompt);
+      setWorksheets(prev => ({ ...prev, [session]: result }));
+    } catch (error) {
+      console.error('활동지 생성 오류:', error);
+      alert('활동지 생성 중 오류가 발생했습니다.');
+    } finally {
+      setGeneratingWorksheet(prev => ({ ...prev, [session]: false }));
+    }
+  };
+
   const downloadMarkdown = () => {
     const allPlans = Object.entries(plans)
       .filter(([, content]) => content)
-      .map(([session, content]) => `# ${session}\n\n${content}`)
+      .map(([session, content]) => {
+        let result = `# ${session}\n\n${content}`;
+        if (worksheets[session]) {
+          result += `\n\n## ${session} 학생 활동지\n\n${worksheets[session]}`;
+        }
+        return result;
+      })
       .join('\n\n---\n\n');
     
     if (!allPlans) return;
@@ -137,7 +209,7 @@ ${feedbackFlags || "(없음)"}
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `AI_융합_수업지도안_${gradeBand}학년.md`;
+    a.download = `AI_융합_수업지도안_및_활동지_${gradeBand}학년.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -145,7 +217,13 @@ ${feedbackFlags || "(없음)"}
   const downloadPDF = async () => {
     const allPlans = Object.entries(plans)
       .filter(([, content]) => content)
-      .map(([session, content]) => `<h1>${session}</h1><div>${content.replace(/\n/g, '<br>')}</div>`)
+      .map(([session, content]) => {
+        let result = `<h1>${session}</h1><div>${content.replace(/\n/g, '<br>')}</div>`;
+        if (worksheets[session]) {
+          result += `<h2>${session} 학생 활동지</h2><div>${worksheets[session].replace(/\n/g, '<br>')}</div>`;
+        }
+        return result;
+      })
       .join('<hr>');
     
     if (!allPlans) return;
@@ -158,7 +236,7 @@ ${feedbackFlags || "(없음)"}
     
     const opt: Html2PdfOptions = {
       margin: 1,
-      filename: `AI_융합_수업지도안_${gradeBand}학년.pdf`,
+      filename: `AI_융합_수업지도안_및_활동지_${gradeBand}학년.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -176,7 +254,13 @@ ${feedbackFlags || "(없음)"}
   const downloadDocx = async () => {
     const allPlans = Object.entries(plans)
       .filter(([, content]) => content)
-      .map(([session, content]) => `${session}\n\n${content}`)
+      .map(([session, content]) => {
+        let result = `${session}\n\n${content}`;
+        if (worksheets[session]) {
+          result += `\n\n${session} 학생 활동지\n\n${worksheets[session]}`;
+        }
+        return result;
+      })
       .join('\n\n---\n\n');
     
     if (!allPlans) return;
@@ -204,7 +288,7 @@ ${feedbackFlags || "(없음)"}
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `AI_융합_수업지도안_${gradeBand}학년.docx`;
+    a.download = `AI_융합_수업지도안_및_활동지_${gradeBand}학년.docx`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -289,16 +373,45 @@ ${feedbackFlags || "(없음)"}
                <div key={session} className="card p-6">
                  <div className="flex justify-between items-center mb-4">
                    <h3 className="text-lg font-semibold">{session} 수업지도안</h3>
-                   <button 
-                     onClick={() => navigator.clipboard.writeText(plans[session])}
-                     className="btn-primary text-sm"
-                   >
-                     📋 복사하기
-                   </button>
+                   <div className="flex gap-2">
+                     <button 
+                       onClick={() => navigator.clipboard.writeText(plans[session])}
+                       className="btn-primary text-sm"
+                     >
+                       📋 복사하기
+                     </button>
+                     <button
+                       onClick={() => generateWorksheet(session)}
+                       disabled={generatingWorksheet[session]}
+                       className="btn-primary text-sm"
+                     >
+                       {generatingWorksheet[session] ? '생성 중...' : '📝 활동지 생성'}
+                     </button>
+                   </div>
                  </div>
                  <div className="bg-white border rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-auto max-h-96">
                    {plans[session]}
                  </div>
+
+                 {/* 학생 활동지 표시 영역 */}
+                 {worksheets[session] && (
+                   <div className="mt-4 p-4 border rounded-lg bg-green-50">
+                     <div className="flex justify-between items-center mb-3">
+                       <h4 className="font-semibold text-green-800">{session} 학생 활동지</h4>
+                       <button
+                         onClick={() => navigator.clipboard.writeText(worksheets[session])}
+                         className="btn-ghost text-sm"
+                       >
+                         📋 복사
+                       </button>
+                     </div>
+                     <div className="prose max-w-none text-sm">
+                       <pre className="whitespace-pre-wrap font-sans text-gray-700">
+                         {worksheets[session]}
+                       </pre>
+                     </div>
+                   </div>
+                 )}
                </div>
              )
            ))}

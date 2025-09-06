@@ -368,6 +368,20 @@ AI 윤리 고려, 협력 활동 강조.`;
               </div>
             )}
 
+            {/* 지도안 생성하기 버튼 */}
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => {
+                  // 지도안 페이지로 이동
+                  window.location.href = '/plan';
+                }}
+                className="btn-primary flex-1"
+                disabled={!scenario || generating}
+              >
+                지도안 생성하기
+              </button>
+            </div>
+
             {/* 다음 단계 버튼은 Wizard에서 처리 */}
           </div>
         )}
