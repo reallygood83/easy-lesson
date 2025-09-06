@@ -1,25 +1,26 @@
 "use client";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
-export default function SettingsPage() {
+function SettingsPage() {
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState(false);
 
-  console.log("[DEBUG] Settings page loaded - API key from localStorage:", !!localStorage.getItem("ai_planner_api_key"));
-
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const k = localStorage.getItem("ai_planner_api_key") || "";
     setKey(k);
   }, []);
 
   function save() {
-    console.log("[DEBUG] Saving API key to localStorage");
+    if (typeof window === "undefined") return;
     localStorage.setItem("ai_planner_api_key", key.trim());
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   }
 
   function clearKey() {
+    if (typeof window === "undefined") return;
     localStorage.removeItem("ai_planner_api_key");
     setKey("");
   }
@@ -45,3 +46,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(SettingsPage), { ssr: false });

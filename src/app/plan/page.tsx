@@ -1,47 +1,64 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLessonStore } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
-import html2pdf from "html2pdf.js";
+
+// html2pdf 최소 타입 정의
+type Html2PdfOptions = {
+  margin: number;
+  filename: string;
+  image: { type: "jpeg" | "png"; quality: number };
+  html2canvas: { scale: number };
+  jsPDF: { unit: "in" | "mm" | "cm" | "px"; format: string | [number, number]; orientation: "portrait" | "landscape" };
+};
+
+type Html2PdfChain = {
+  set: (opt: Html2PdfOptions) => { from: (el: HTMLElement) => { save: () => void } };
+};
+
+type Html2Pdf = () => Html2PdfChain;
 
 export default function PlanStep() {
-  const { scenario, autoStandards, feedback, feedbackOptions, plan, validation, gradeBand, setPlan, setValidation, setStep4Valid, prevStep } = useLessonStore();
+  const { scenario, autoStandards, /* feedback, */ feedbackOptions, plan, validation, gradeBand, setPlan, setValidation, setStep4Valid, prevStep } = useLessonStore();
   const { generate, loading, error } = useGemini();
   const [generating, setGenerating] = useState(false);
+  const html2pdfRef = useRef<Html2Pdf | null>(null);
+
+  // html2pdf 클라이언트 전용 로딩
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (typeof window === "undefined") return;
+      try {
+        const imported = (await import("html2pdf.js")) as unknown as Html2Pdf | { default: Html2Pdf };
+        const lib: Html2Pdf = ("default" in imported ? imported.default : imported);
+        if (mounted) html2pdfRef.current = lib;
+      } catch (e) {
+        console.warn("[WARN] html2pdf 로딩 실패", e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const generateLessonPlan = async () => {
     if (!scenario || autoStandards.length < 2) {
-      alert("시나리오가 생성되지 않았거나 충분한 성취기준이 없습니다.");
+      alert("시나리오와 성취기준(2개 이상)을 먼저 준비해 주세요.");
       return;
     }
 
     setGenerating(true);
     try {
-      console.log("[DEBUG] Generating lesson plan");
-      
-      // 워크시트 템플릿 섹션별 프롬프트 체인
-      const standardsText = autoStandards.map(s => `[${s.code}] ${s.subject}: ${s.statement}`).join("\n");
-      const feedbackText = Object.entries(feedbackOptions)
+      const standardsText = autoStandards.map(s => `${s.subject}(${s.framework}) ${s.code}: ${s.statement}`).join("\n");
+      const feedbackFlags = Object.entries(feedbackOptions)
         .filter(([, checked]) => checked)
-        .map(([key]) => key)
-        .join(", ") || feedback || "없음";
+        .map(([k]) => `- ${k}`)
+        .join("\n");
 
-      const templatePrompt = `다음 정보를 기반으로 초등학교 AI 융합교육 수업지도안을 2025 워크시트 형식으로 생성하세요. 형식은 1단계(기획), 2단계(디자인), 3단계(실행)으로 구성.
-
-프로젝트 정보:
-- 시나리오: ${scenario}
-- 자동 선택 성취기준: ${standardsText}
-- 교사 피드백: ${feedbackText}
-- 학년: ${gradeBand}학년
-
-각 단계 상세 형식:
-1. 수업을 기획하다: 프로젝트명, 교과융합, 단원명, GRASPS 관점, 프로젝트 방향, 질문있는 수업, AI 활용 관점, 유의점, 1·2·3단계 흐름 개요
-2. 수업을 디자인하다: 프로젝트 개요, 성취기준(체크된 항목 자동 반영), 핵심역량, AI 소양, 학습목표, 학습자 수요진단, 프로젝트 흐름표(단계/차시/소주제/교과·성취기준/수업·평가내용/AI·디지털 도구/유의점), 참고자료, 평가 설계(GRASPS 과제, 기준표, 계획, AI 도구 윤리)
-3. 수업을 실행하다: 차시별 교수학습안(학습주제, 단원, 성취기준, 수업의도/전략, 학습목표, AI·디지털 도구, 활동 단계, 시간, 자료/유의점, 평가 계획)
-
-필수: 융합 교과 2개 이상, 성취기준 2개 이상 명시, 3차시 구성, AI 윤리 고려. Markdown 형식으로 출력.`;
+      const templatePrompt = `다음은 초등 ${gradeBand}학년 대상 융합교육 수업지도안 템플릿입니다.\n\n[성취기준]\n${standardsText}\n\n[교사 피드백 옵션]\n${feedbackFlags || "(없음)"}\n\n[요구사항]\n- 3차시 구성\n- 활동 중심, 평가 기준 포함\n- 워크시트 구조에 맞춰 Markdown 형식으로 작성`;
 
       const response = await generate(templatePrompt, { temperature: 0.5, maxTokens: 4096 });
       setPlan(response);
@@ -85,7 +102,7 @@ export default function PlanStep() {
     element.style.left = '-9999px';
     document.body.appendChild(element);
     
-    const opt = {
+    const opt: Html2PdfOptions = {
       margin: 1,
       filename: `AI_융합_수업지도안_${gradeBand}학년.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
@@ -93,6 +110,7 @@ export default function PlanStep() {
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
     
+    const html2pdf = html2pdfRef.current;
     if (html2pdf) {
       html2pdf().set(opt).from(element).save();
     } else {
@@ -167,85 +185,41 @@ export default function PlanStep() {
                 {validation.subjectsCount >= 2 ? "✓" : "✗"}
               </div>
             </div>
-            <div className={validation.isValid ? "text-green-600" : "text-red-600"}>
+            <div>
               <div>성취기준 수: {validation.standardsCount}/2+</div>
               <div className={validation.standardsCount >= 2 ? "text-green-600" : "text-red-600"}>
                 {validation.standardsCount >= 2 ? "✓" : "✗"}
               </div>
             </div>
-            <div className={validation.isValid ? "text-green-600" : "text-red-600"}>
+            <div>
               <div>차시 수: {validation.sessionsCount}/3</div>
               <div className={validation.sessionsCount >= 3 ? "text-green-600" : "text-red-600"}>
                 {validation.sessionsCount >= 3 ? "✓" : "✗"}
               </div>
             </div>
           </div>
-          <p className={validation.isValid ? "text-green-600 mt-2" : "text-red-600 mt-2"}>
-            {validation.isValid ? "모든 검증 통과! 지도안 생성 가능" : "검증 실패: 조건을 충족하지 않습니다."}
-          </p>
         </div>
 
-        {/* 지도안 생성 버튼 */}
-        <div className="card p-6">
-          <button
-            onClick={generateLessonPlan}
-            disabled={generating || loading || !validation.isValid}
-            className="btn-primary w-full disabled:opacity-50"
-          >
-            {generating || loading ? "생성 중..." : "워크시트 형식 수업지도안 생성"}
+        {/* 생성 및 내보내기 */}
+        <div className="card p-6 space-y-4">
+          <button onClick={generateLessonPlan} disabled={generating || loading} className="btn-primary w-full disabled:opacity-50">
+            {generating || loading ? "생성 중..." : "수업지도안 생성하기"}
           </button>
-          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <button onClick={downloadMarkdown} className="btn-ghost">Markdown로 다운로드</button>
+            <button onClick={downloadPDF} className="btn-ghost">PDF로 다운로드</button>
+            <button onClick={downloadDocx} className="btn-ghost">Word(docx)로 다운로드</button>
+          </div>
+
+          {error && <p className="text-red-600 text-sm">{error}</p>}
         </div>
 
-        {/* 생성된 지도안 표시 */}
-        {plan && (
-          <div className="card p-6">
-            <h3 className="font-semibold mb-4 text-lg">생성된 수업지도안</h3>
-            <div className="space-y-6">
-              {plan.split('\n\n').map((section, sectionIdx) => (
-                <div key={sectionIdx} className="p-4 border rounded-lg bg-white">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-semibold text-[var(--text-strong)]">섹션 {sectionIdx + 1}</h4>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(section)}
-                      className="btn-ghost text-xs p-1 hover:bg-[var(--rose-50)] rounded"
-                    >
-                      📋 복사
-                    </button>
-                  </div>
-                  <div className="prose prose-sm max-w-none prose-headings:text-[var(--text-strong)] prose-p:leading-relaxed" dangerouslySetInnerHTML={{ __html: section.replace(/\n/g, "<br>") }} />
-                </div>
-              ))}
-            </div>
-            
-            {/* 재생성 버튼 */}
-            <button
-              onClick={generateLessonPlan}
-              disabled={generating || loading}
-              className="mt-4 btn-secondary"
-            >
-              {generating || loading ? "재생성 중..." : "다시 생성하기"}
-            </button>
-
-            {/* 내보내기 옵션 */}
-            <div className="mt-6 pt-4 border-t border-[var(--rose-200)]/50">
-              <h4 className="font-medium mb-3">내보내기</h4>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={downloadMarkdown} className="btn-primary px-4 py-2">
-                  Markdown 다운로드
-                </button>
-                <button onClick={downloadPDF} className="btn-secondary px-4 py-2">
-                  PDF 다운로드
-                </button>
-                <button onClick={downloadDocx} className="btn-ghost px-4 py-2">
-                  DOCX 다운로드
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 완료 시 다음 단계는 Wizard에서 처리 */}
+        {/* 결과 표시 */}
+        <div className="card p-6">
+          <h3 className="font-semibold mb-4">생성된 수업지도안</h3>
+          <pre className="prose max-w-none whitespace-pre-wrap">{plan}</pre>
+        </div>
       </div>
     </WizardStep>
   );
