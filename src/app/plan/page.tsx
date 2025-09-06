@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, ReactElement } from "react";
 import { useLessonStore } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
@@ -194,21 +194,66 @@ ${plans[session]}
   };
 
   const downloadMarkdown = () => {
+    const formatContentForMarkdown = (content: string) => {
+      const lines = content.split('\n');
+      let markdown = '';
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        
+        if (!trimmedLine) {
+          markdown += '\n';
+          return;
+        }
+        
+        // 주요 제목
+        if (trimmedLine.includes('차시') || trimmedLine.includes('학습목표') || 
+            trimmedLine.includes('준비물') || trimmedLine.includes('평가') ||
+            trimmedLine.includes('단계') || trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+          const title = trimmedLine.replace(/\*\*/g, '').replace(/:/g, '');
+          markdown += `### ${title}\n\n`;
+          return;
+        }
+        
+        // 소제목
+        if (trimmedLine.startsWith('*') && trimmedLine.endsWith('*') && !trimmedLine.startsWith('**')) {
+          const subtitle = trimmedLine.replace(/\*/g, '');
+          markdown += `#### ${subtitle}\n\n`;
+          return;
+        }
+        
+        // 목록 항목
+        if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ') || 
+            trimmedLine.match(/^\d+\./)) {
+          markdown += `${trimmedLine}\n`;
+          return;
+        }
+        
+        // 일반 텍스트
+        markdown += `${trimmedLine}\n\n`;
+      });
+      
+      return markdown;
+    };
+    
     const allPlans = Object.entries(plans)
       .filter(([, content]) => content)
       .map(([session, content]) => {
-        let result = `# ${session}\n\n${content}`;
+        let result = `# ${session}\n\n`;
+        result += formatContentForMarkdown(content);
         if (worksheets[session]) {
-          result += `\n\n## ${session} 학생 활동지\n\n${worksheets[session]}`;
+          result += `## ${session} 학생 활동지\n\n`;
+          result += formatContentForMarkdown(worksheets[session]);
         }
         return result;
       })
-      .join('\n\n---\n\n');
+      .join('---\n\n');
     
     if (!allPlans) return;
-    const blob = new Blob([allPlans], { type: "text/markdown" });
+    
+    const blob = new Blob([allPlans], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `AI_융합_수업지도안_및_활동지_${gradeBand}학년.md`;
     a.click();
@@ -216,31 +261,101 @@ ${plans[session]}
   };
 
   const downloadPDF = async () => {
+    const formatContentForPDF = (content: string) => {
+      const lines = content.split('\n');
+      let html = '';
+      let inList = false;
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        
+        if (!trimmedLine) {
+          if (inList) {
+            html += '</ul>';
+            inList = false;
+          }
+          return;
+        }
+        
+        // 주요 제목
+        if (trimmedLine.includes('차시') || trimmedLine.includes('학습목표') || 
+            trimmedLine.includes('준비물') || trimmedLine.includes('평가') ||
+            trimmedLine.includes('단계') || trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+          if (inList) {
+            html += '</ul>';
+            inList = false;
+          }
+          const title = trimmedLine.replace(/\*\*/g, '').replace(/:/g, '');
+          html += `<h3 style="color: #1e40af; font-weight: bold; font-size: 18px; margin-top: 24px; margin-bottom: 12px; border-bottom: 2px solid #dbeafe; padding-bottom: 4px;">${title}</h3>`;
+          return;
+        }
+        
+        // 소제목
+        if (trimmedLine.startsWith('*') && trimmedLine.endsWith('*') && !trimmedLine.startsWith('**')) {
+          if (inList) {
+            html += '</ul>';
+            inList = false;
+          }
+          const subtitle = trimmedLine.replace(/\*/g, '');
+          html += `<h4 style="font-weight: 600; color: #374151; margin-top: 16px; margin-bottom: 8px;">${subtitle}</h4>`;
+          return;
+        }
+        
+        // 목록 항목
+        if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ') || 
+            trimmedLine.match(/^\d+\./)) {
+          if (!inList) {
+            html += '<ul style="margin-left: 16px; margin-bottom: 16px;">';
+            inList = true;
+          }
+          const item = trimmedLine.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+          html += `<li style="color: #374151; margin-bottom: 4px;">${item}</li>`;
+          return;
+        }
+        
+        // 일반 텍스트
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        html += `<p style="color: #374151; margin-bottom: 8px; line-height: 1.6;">${trimmedLine}</p>`;
+      });
+      
+      if (inList) {
+        html += '</ul>';
+      }
+      
+      return html;
+    };
+    
     const allPlans = Object.entries(plans)
       .filter(([, content]) => content)
       .map(([session, content]) => {
-        let result = `<h1>${session}</h1><div>${content.replace(/\n/g, '<br>')}</div>`;
+        let result = `<h1 style="color: #1e40af; font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 3px solid #3b82f6; padding-bottom: 8px;">${session}</h1>`;
+        result += formatContentForPDF(content);
         if (worksheets[session]) {
-          result += `<h2>${session} 학생 활동지</h2><div>${worksheets[session].replace(/\n/g, '<br>')}</div>`;
+          result += `<h2 style="color: #059669; font-size: 20px; font-weight: bold; margin-top: 32px; margin-bottom: 16px; border-bottom: 2px solid #10b981; padding-bottom: 4px;">${session} 학생 활동지</h2>`;
+          result += formatContentForPDF(worksheets[session]);
         }
         return result;
       })
-      .join('<hr>');
+      .join('<div style="page-break-before: always;"></div>');
     
     if (!allPlans) return;
     
     const element = document.createElement('div');
-    element.innerHTML = allPlans;
+    element.innerHTML = `<div style="font-family: 'Malgun Gothic', sans-serif; font-size: 14px; line-height: 1.6; color: #111827; padding: 20px;">${allPlans}</div>`;
     element.style.position = 'absolute';
     element.style.left = '-9999px';
+    element.style.width = '210mm';
     document.body.appendChild(element);
     
     const opt: Html2PdfOptions = {
-      margin: 1,
+      margin: 0.5,
       filename: `AI_융합_수업지도안_및_활동지_${gradeBand}학년.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
     
     const html2pdf = html2pdfRef.current;
@@ -250,6 +365,85 @@ ${plans[session]}
       alert("PDF 라이브러리 로딩 중입니다. 잠시 후 다시 시도해 주세요.");
     }
     document.body.removeChild(element);
+  };
+
+  // 지도안 텍스트를 구조화된 HTML로 변환하는 함수
+  const formatLessonPlan = (content: string) => {
+    if (!content) return null;
+    
+    const lines = content.split('\n');
+    const formattedContent: ReactElement[] = [];
+    let currentSection = '';
+    let listItems: string[] = [];
+    
+    const flushListItems = () => {
+      if (listItems.length > 0) {
+        formattedContent.push(
+          <ul key={`list-${formattedContent.length}`} className="list-disc list-inside ml-4 mb-4 space-y-1">
+            {listItems.map((item, idx) => (
+              <li key={idx} className="text-gray-700">{item}</li>
+            ))}
+          </ul>
+        );
+        listItems = [];
+      }
+    };
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      if (!trimmedLine) {
+        flushListItems();
+        return;
+      }
+      
+      // 주요 제목 (차시명, 학습목표 등)
+      if (trimmedLine.includes('차시') || trimmedLine.includes('학습목표') || 
+          trimmedLine.includes('준비물') || trimmedLine.includes('평가') ||
+          trimmedLine.includes('단계') || trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        flushListItems();
+        const title = trimmedLine.replace(/\*\*/g, '').replace(/:/g, '');
+        formattedContent.push(
+          <h3 key={`title-${index}`} className="text-lg font-bold text-blue-800 mt-6 mb-3 border-b-2 border-blue-200 pb-1">
+            {title}
+          </h3>
+        );
+        return;
+      }
+      
+      // 소제목
+      if (trimmedLine.startsWith('*') && trimmedLine.endsWith('*') && !trimmedLine.startsWith('**')) {
+        flushListItems();
+        const subtitle = trimmedLine.replace(/\*/g, '');
+        formattedContent.push(
+          <h4 key={`subtitle-${index}`} className="text-md font-semibold text-gray-800 mt-4 mb-2">
+            {subtitle}
+          </h4>
+        );
+        return;
+      }
+      
+      // 목록 항목
+      if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ') || 
+          trimmedLine.match(/^\d+\./)) {
+        const item = trimmedLine.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+        listItems.push(item);
+        return;
+      }
+      
+      // 일반 텍스트
+      flushListItems();
+      if (trimmedLine) {
+        formattedContent.push(
+          <p key={`text-${index}`} className="text-gray-700 mb-2 leading-relaxed">
+            {trimmedLine}
+          </p>
+        );
+      }
+    });
+    
+    flushListItems();
+    return formattedContent;
   };
 
   const downloadDocx = async () => {
@@ -266,22 +460,73 @@ ${plans[session]}
     
     if (!allPlans) return;
     
-    const { Document, Packer, Paragraph, TextRun } = await import('docx');
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
+    
+    const children: any[] = [];
+    
+    Object.entries(plans)
+      .filter(([, content]) => content)
+      .forEach(([session, content]) => {
+        // 차시 제목
+        children.push(
+          new Paragraph({
+            text: session,
+            heading: HeadingLevel.HEADING_1,
+          })
+        );
+        
+        // 내용을 문단별로 분리
+        const lines = content.split('\n').filter(line => line.trim());
+        lines.forEach(line => {
+          const trimmedLine = line.trim();
+          if (trimmedLine) {
+            children.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: trimmedLine,
+                    size: 24,
+                    font: "맑은 고딕"
+                  })
+                ]
+              })
+            );
+          }
+        });
+        
+        // 활동지가 있으면 추가
+        if (worksheets[session]) {
+          children.push(
+            new Paragraph({
+              text: `${session} 학생 활동지`,
+              heading: HeadingLevel.HEADING_2,
+            })
+          );
+          
+          const worksheetLines = worksheets[session].split('\n').filter(line => line.trim());
+          worksheetLines.forEach(line => {
+            const trimmedLine = line.trim();
+            if (trimmedLine) {
+              children.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: trimmedLine,
+                      size: 22,
+                      font: "맑은 고딕"
+                    })
+                  ]
+                })
+              );
+            }
+          });
+        }
+      });
     
     const doc = new Document({
       sections: [{
         properties: {},
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: allPlans,
-                size: 24,
-                font: "Calibri"
-              })
-            ]
-          })
-        ]
+        children: children
       }]
     });
 
@@ -390,8 +635,10 @@ ${plans[session]}
                      </button>
                    </div>
                  </div>
-                 <div className="bg-white border rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-auto max-h-96">
-                   {plans[session]}
+                 <div className="bg-white border rounded-lg p-6 overflow-auto max-h-96">
+                   <div className="prose max-w-none lesson-plan-content">
+                     {formatLessonPlan(plans[session])}
+                   </div>
                  </div>
 
                  {/* 학생 활동지 표시 영역 */}
@@ -406,10 +653,8 @@ ${plans[session]}
                          📋 복사
                        </button>
                      </div>
-                     <div className="prose max-w-none text-sm">
-                       <pre className="whitespace-pre-wrap font-sans text-gray-700">
-                         {worksheets[session]}
-                       </pre>
+                     <div className="prose max-w-none text-sm lesson-plan-content">
+                       {formatLessonPlan(worksheets[session])}
                      </div>
                    </div>
                  )}

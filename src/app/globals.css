@@ -283,3 +283,73 @@ body {
   color: var(--error);
   border: 1px solid var(--rose-200);
 }
+
+/* 지도안 콘텐츠 스타일링 */
+.lesson-plan-content {
+  line-height: 1.8;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.lesson-plan-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-warm);
+  margin: 1.5rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--coral-200);
+}
+
+.lesson-plan-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--accent-soft);
+  margin: 1.25rem 0 0.75rem 0;
+  padding-left: 0.5rem;
+  border-left: 4px solid var(--apricot-200);
+}
+
+.lesson-plan-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 1rem 0 0.5rem 0;
+}
+
+.lesson-plan-content ul {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.lesson-plan-content li {
+  margin: 0.5rem 0;
+  position: relative;
+}
+
+.lesson-plan-content li::marker {
+  color: var(--accent-warm);
+}
+
+.lesson-plan-content p {
+  margin: 0.75rem 0;
+}
+
+.lesson-plan-content strong {
+  font-weight: 600;
+  color: var(--accent-soft);
+}
+
+.lesson-plan-content .section {
+  background: var(--cream-100);
+  border: 1px solid var(--warm-brown-200);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.lesson-plan-content .highlight {
+  background: var(--peach-100);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid var(--coral-300);
+}
