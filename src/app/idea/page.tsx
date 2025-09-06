@@ -6,6 +6,7 @@ import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 
 export default function IdeaStep() {
+  const { nextStep } = useLessonStore();
   const { keywords, gradeBand, ideas, setKeywords, setGradeBand, setIdeas, setSelectedIdea, setStep1Valid } = useLessonStore();
   const { generate, loading, error } = useGemini();
   const [inputKeywords, setInputKeywords] = useState("");
@@ -54,7 +55,7 @@ export default function IdeaStep() {
   const handleSelectIdea = (idea: LessonIdea) => {
     console.log("[DEBUG] Idea selected:", idea);
     setSelectedIdea(idea);
-    // Wizard 네비게이션은 Wizard 컴포넌트에서 처리
+    nextStep();
   };
 
   return (
