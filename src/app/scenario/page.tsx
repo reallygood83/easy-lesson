@@ -32,30 +32,88 @@ export default function ScenarioStep() {
       // 키워드와 아이디어에서 검색어 추출
       const searchTerms = [...keywords, selectedIdea.title, selectedIdea.description].join(" ");
       
-      // 관련 standards 필터링 (최소 2개, 서로 다른 교과)
+      // 관련 standards 필터링 (학년대 일치)
       const relevantStandards = items
         .filter((item: StandardItem) => item.gradeBand === gradeBand)
-        .filter((item: StandardItem) => searchTerms.toLowerCase().includes(item.subject.toLowerCase()) || 
-                                      searchTerms.toLowerCase().includes(item.code.toLowerCase()) ||
-                                      item.statement.toLowerCase().includes(searchTerms.toLowerCase()))
-        .sort((a: StandardItem, b: StandardItem) => a.subject.localeCompare(b.subject))
-        .slice(0, 5); // 상위 5개
+        .filter((item: StandardItem) => {
+          const searchLower = searchTerms.toLowerCase();
+          const subjectLower = item.subject.toLowerCase();
+          const codeLower = item.code.toLowerCase();
+          const statementLower = item.statement.toLowerCase();
+          
+          return searchLower.includes(subjectLower) || 
+                 subjectLower.includes('국어') || subjectLower.includes('수학') ||
+                 subjectLower.includes('사회') || subjectLower.includes('과학') ||
+                 codeLower.includes(searchLower) ||
+                 statementLower.includes(searchLower);
+        })
+        .sort((a: StandardItem, b: StandardItem) => a.subject.localeCompare(b.subject));
 
-      // 서로 다른 교과 2개 이상 확보
+      // 서로 다른 교과 2개 이상 확보 (개선된 로직)
       const selectedStandards: AutoStandard[] = [];
-      const subjects = new Set<string>();
-      for (const standard of relevantStandards) {
-        if (subjects.size < 2 || Math.random() > 0.5) { // 무작위로 추가하여 다양성 확보
-          subjects.add(standard.subject);
+      const subjectGroups = new Map<string, StandardItem[]>();
+      
+      // 교과별로 그룹화
+       relevantStandards.forEach((standard: StandardItem) => {
+         if (!subjectGroups.has(standard.subject)) {
+           subjectGroups.set(standard.subject, []);
+         }
+         subjectGroups.get(standard.subject)!.push(standard);
+       });
+      
+      // 각 교과에서 최소 1개씩 선택하여 최소 2개 교과 확보
+      const subjectNames = Array.from(subjectGroups.keys());
+      for (let i = 0; i < Math.min(subjectNames.length, 4); i++) {
+        const subject = subjectNames[i];
+        const standards = subjectGroups.get(subject)!;
+        const selected = standards[0]; // 각 교과의 첫 번째 성취기준 선택
+        
+        selectedStandards.push({
+          framework: selected.framework,
+          subject: selected.subject,
+          gradeBand: selected.gradeBand,
+          code: selected.code,
+          statement: selected.statement,
+        });
+        
+        // 최소 2개 교과 확보되면 추가 선택
+        if (selectedStandards.length >= 2 && standards.length > 1) {
+          const additional = standards[1];
           selectedStandards.push({
-            framework: standard.framework,
-            subject: standard.subject,
-            gradeBand: standard.gradeBand,
-            code: standard.code,
-            statement: standard.statement,
+            framework: additional.framework,
+            subject: additional.subject,
+            gradeBand: additional.gradeBand,
+            code: additional.code,
+            statement: additional.statement,
           });
         }
-        if (selectedStandards.length >= 4) break; // 최대 4개
+        
+        if (selectedStandards.length >= 4) break;
+      }
+      
+      // 최소 2개 교과 확보 못한 경우 fallback 추가
+      const uniqueSubjects = new Set(selectedStandards.map(s => s.subject));
+      if (uniqueSubjects.size < 2) {
+        // 기본 교과 추가
+        const defaultSubjects = ['국어', '수학', '사회', '과학'];
+        for (const subject of defaultSubjects) {
+          if (!uniqueSubjects.has(subject) && selectedStandards.length < 4) {
+            const fallbackStandard = items.find((item: StandardItem) => 
+              item.gradeBand === gradeBand && item.subject === subject
+            );
+            if (fallbackStandard) {
+              selectedStandards.push({
+                framework: fallbackStandard.framework,
+                subject: fallbackStandard.subject,
+                gradeBand: fallbackStandard.gradeBand,
+                code: fallbackStandard.code,
+                statement: fallbackStandard.statement,
+              });
+              uniqueSubjects.add(subject);
+              if (uniqueSubjects.size >= 2) break;
+            }
+          }
+        }
       }
 
       setAutoStandards(selectedStandards);
