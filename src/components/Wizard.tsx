@@ -134,7 +134,6 @@ export interface WizardStepProps {
 }
 
 export function WizardStep({ children, label, onValidate }: React.PropsWithChildren<WizardStepProps>) {
-  const { validateStep } = useLessonStore();
   const stepNum = parseInt(label.match(/\d+/)?.[0] || "1");
 
   React.useEffect(() => {

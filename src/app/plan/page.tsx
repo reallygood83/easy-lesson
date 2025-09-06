@@ -1,15 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useLessonStore } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 import html2pdf from "html2pdf.js";
 
 export default function PlanStep() {
-  const router = useRouter();
-  const { scenario, autoStandards, feedback, feedbackOptions, plan, validation, gradeBand, setPlan, setValidation, step4Valid, setStep4Valid } = useLessonStore();
+  const { scenario, autoStandards, feedback, feedbackOptions, plan, validation, gradeBand, setPlan, setValidation, setStep4Valid, prevStep } = useLessonStore();
   const { generate, loading, error } = useGemini();
   const [generating, setGenerating] = useState(false);
 
@@ -146,7 +144,7 @@ export default function PlanStep() {
         <h1 className="text-xl md:text-2xl font-semibold text-ink mt-6">최종 수업지도안</h1>
         <div className="card p-6 md:p-8 mt-4">
           <p className="text-ink/80">먼저 융합교육 시나리오를 생성해 주세요.</p>
-          <button onClick={() => router.push("/scenario")} className="mt-4 btn-primary">
+          <button onClick={prevStep} className="mt-4 btn-primary">
             시나리오 생성으로 돌아가기
           </button>
         </div>

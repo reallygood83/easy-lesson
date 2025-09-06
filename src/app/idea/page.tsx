@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useLessonStore, LessonIdea } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 
 export default function IdeaStep() {
-  const { keywords, gradeBand, ideas, setKeywords, setGradeBand, setIdeas, setSelectedIdea, step1Valid, setStep1Valid } = useLessonStore();
+  const { keywords, gradeBand, ideas, setKeywords, setGradeBand, setIdeas, setSelectedIdea, setStep1Valid } = useLessonStore();
   const { generate, loading, error } = useGemini();
   const [inputKeywords, setInputKeywords] = useState("");
   const [localIdeas, setLocalIdeas] = useState(ideas); // 로컬 상태로 UI 관리
@@ -112,7 +111,7 @@ export default function IdeaStep() {
                   <p className="text-[var(--text-muted)] mb-3 leading-relaxed">{idea.description}</p>
                   <div className="space-y-2 text-sm mb-4">
                     <h4 className="font-medium text-[var(--rose-700)]">차시별 개요:</h4>
-                    {idea.sessions.map((session: any, idx: number) => (
+                    {idea.sessions.map((session: { title: string; overview: string }, idx: number) => (
                       <div key={idx} className="flex items-start gap-2 pl-2 border-l-2 border-[var(--rose-200)]">
                         <span className="w-6 font-medium text-[var(--rose-600)] flex-shrink-0">{idx + 1}차시</span>
                         <div>

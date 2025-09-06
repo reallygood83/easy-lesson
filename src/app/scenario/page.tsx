@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useLessonStore, AutoStandard } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
@@ -16,25 +15,11 @@ type StandardItem = {
 };
 
 export default function ScenarioStep() {
-  const router = useRouter();
-  const { selectedIdea, keywords, gradeBand, scenario, feedback, feedbackOptions, autoStandards, setScenario, setFeedback, setFeedbackOptions, setAutoStandards, setValidation, step3Valid, setStep3Valid } = useLessonStore();
+  const { selectedIdea, keywords, gradeBand, scenario, feedback, feedbackOptions, autoStandards, setScenario, setFeedback, setFeedbackOptions, setAutoStandards, setValidation, setStep3Valid, prevStep } = useLessonStore();
   const { generate, loading, error } = useGemini();
   const [generating, setGenerating] = useState(false);
   const [feedbackText, setFeedbackText] = useState(feedback);
   const [showFeedback, setShowFeedback] = useState(false);
-
-  // 자동 성취기준 선택
-  useEffect(() => {
-    if (selectedIdea && keywords.length > 0 && gradeBand && autoStandards.length === 0) {
-      loadAutoStandards();
-    }
-  }, [selectedIdea, keywords, gradeBand]);
-
-  // validation 체크
-  useEffect(() => {
-    const isValid = scenario.length > 0 && autoStandards.length >= 2;
-    setStep3Valid(isValid);
-  }, [scenario, autoStandards.length, setStep3Valid]);
 
   const loadAutoStandards = async () => {
     if (!selectedIdea) return;
@@ -81,6 +66,19 @@ export default function ScenarioStep() {
       setAutoStandards([]);
     }
   };
+
+  // 자동 성취기준 선택
+  useEffect(() => {
+    if (selectedIdea && keywords.length > 0 && gradeBand && autoStandards.length === 0) {
+      loadAutoStandards();
+    }
+  }, [selectedIdea, keywords, gradeBand, autoStandards.length]);
+
+  // validation 체크
+  useEffect(() => {
+    const isValid = scenario.length > 0 && autoStandards.length >= 2;
+    setStep3Valid(isValid);
+  }, [scenario, autoStandards.length, setStep3Valid]);
 
   const generateScenario = async () => {
     if (!selectedIdea || autoStandards.length < 2) {
@@ -131,14 +129,13 @@ AI 윤리 고려, 협력 활동 강조.`;
     generateScenario(); // 피드백 반영 재생성
   };
 
-
   if (!selectedIdea) {
     return (
       <div className="mx-auto max-w-5xl">
         <h1 className="text-xl md:text-2xl font-semibold text-ink mt-6">융합교육 시나리오</h1>
         <div className="card p-6 md:p-8 mt-4">
           <p className="text-ink/80">먼저 프로젝트 아이디어를 선택해 주세요.</p>
-          <button onClick={() => router.push("/idea")} className="mt-4 btn-primary">
+          <button onClick={prevStep} className="mt-4 btn-primary">
             아이디어 생성으로 돌아가기
           </button>
         </div>
