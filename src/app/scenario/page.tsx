@@ -62,8 +62,25 @@ export default function ScenarioStep() {
       console.log("[DEBUG] Auto selected standards:", selectedStandards);
     } catch (err) {
       console.error("[DEBUG] Auto standards load failed:", err);
-      // fallback: 임의 2개 선택 (실제로는 에러 처리 UI)
-      setAutoStandards([]);
+      // fallback: 기본 성취기준 2개 제공
+       const fallbackStandards: AutoStandard[] = [
+         {
+           framework: "2022",
+           subject: "국어",
+           gradeBand: gradeBand || "3-4",
+           code: "[2국01-01]",
+           statement: "자신의 경험을 바탕으로 하여 느낌이나 생각을 말한다."
+         },
+         {
+           framework: "2022",
+           subject: "수학",
+           gradeBand: gradeBand || "3-4",
+           code: "[2수03-01]",
+           statement: "구체물이나 그림을 이용하여 덧셈과 뺄셈의 의미를 이해한다."
+         }
+       ];
+      setAutoStandards(fallbackStandards);
+      console.log("[DEBUG] Using fallback standards:", fallbackStandards);
     }
   }, [selectedIdea, keywords, gradeBand, setAutoStandards]);
 
@@ -72,12 +89,20 @@ export default function ScenarioStep() {
     if (selectedIdea && keywords.length > 0 && gradeBand && autoStandards.length === 0) {
       loadAutoStandards();
     }
+    // step2 validation 업데이트 (아이디어가 선택되면 step2는 valid)
+    if (selectedIdea) {
+      const { validateStep } = useLessonStore.getState();
+      validateStep(2, true);
+    }
   }, [selectedIdea, keywords, gradeBand, autoStandards.length, loadAutoStandards]);
 
   // validation 체크
   useEffect(() => {
     const isValid = scenario.length > 0 && autoStandards.length >= 2;
     setStep3Valid(isValid);
+    // stepValidation도 함께 업데이트
+    const { validateStep } = useLessonStore.getState();
+    validateStep(3, isValid);
   }, [scenario, autoStandards.length, setStep3Valid]);
 
   const generateScenario = async () => {

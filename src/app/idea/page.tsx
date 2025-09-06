@@ -22,6 +22,9 @@ export default function IdeaStep() {
   useEffect(() => {
     const isValid = inputKeywords.trim().length > 0 && gradeBand !== "" && localIdeas.length > 0;
     setStep1Valid(isValid);
+    // stepValidation도 함께 업데이트
+    const { validateStep } = useLessonStore.getState();
+    validateStep(1, isValid);
   }, [inputKeywords, gradeBand, localIdeas.length, setStep1Valid]);
 
   const handleGenerateIdeas = async () => {
@@ -55,6 +58,9 @@ export default function IdeaStep() {
   const handleSelectIdea = (idea: LessonIdea) => {
     console.log("[DEBUG] Idea selected:", idea);
     setSelectedIdea(idea);
+    // 아이디어 선택 시 step1을 valid로 설정
+    const { validateStep } = useLessonStore.getState();
+    validateStep(1, true);
     nextStep();
   };
 
