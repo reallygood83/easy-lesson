@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fffdf9; /* 아이보리 */
+  --foreground: #2a1f19; /* 다크 브라운 */
+  --ink: #3b2f2a; /* 본문 텍스트 */
+  --peach-50: #fff5f0;
+  --peach-100: #ffe8df;
+  --peach-200: #ffd4c2;
+  --apricot-100: #ffe7b8;
+  --apricot-200: #ffd98a;
+  --sage-100: #e8f0e6;
+  --rose-100: #fde7ea;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-peach-50: var(--peach-50);
+  --color-peach-100: var(--peach-100);
+  --color-peach-200: var(--peach-200);
+  --color-apricot-100: var(--apricot-100);
+  --color-apricot-200: var(--apricot-200);
+  --color-sage-100: var(--sage-100);
+  --color-rose-100: var(--rose-100);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0e0b09; /* 아주 어두운 브라운톤 */
+    --foreground: #f3ece7; /* 라이트 베이지 */
+    --ink: #efe6df;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, Segoe UI,
+    Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+/* 팔레트 효과 배경 */
+.palette-bg {
+  position: fixed;
+  inset: -10% -10% 0 -10%;
+  pointer-events: none;
+  background: radial-gradient(1200px 600px at 10% 20%, var(--peach-100), transparent 60%),
+    radial-gradient(900px 450px at 90% 10%, var(--apricot-100), transparent 60%),
+    radial-gradient(900px 450px at 60% 80%, var(--sage-100), transparent 60%),
+    radial-gradient(900px 450px at 15% 85%, var(--rose-100), transparent 60%);
+  filter: blur(40px);
+  opacity: 0.7;
+}
+
+/* 유틸리티 */
+.bg-warm { background: var(--background); }
+.text-ink { color: var(--ink); }
+
+/* 카드/패널 가독성 */
+.card {
+  background: color-mix(in oklab, var(--background) 92%, white 8%);
+  border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
+  border-radius: 12px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.04);
 }

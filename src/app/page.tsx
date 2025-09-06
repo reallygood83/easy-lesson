@@ -1,103 +1,47 @@
-import Image from "next/image";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useLessonStore } from "@/store/useLessonStore";
 
 export default function Home() {
+  const router = useRouter();
+  const { setCurrentStep } = useLessonStore();
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-[70vh] mx-auto max-w-5xl">
+      <section className="card p-6 md:p-8 mt-6">
+        <h1 className="text-2xl md:text-3xl font-semibold text-ink">AI 융합 수업지도안 도구</h1>
+        <p className="mt-2 text-ink/80 leading-relaxed">
+          키워드와 학년만 입력하면 프로젝트 아이디어 3개를 제안하고, 선택한 아이디어로 융합교육 시나리오를 생성한 뒤 교사의 피드백을 반영하여 최종 수업지도안을 자동으로 작성합니다.
+        </p>
+        <ul className="mt-4 text-ink/80 list-disc list-inside space-y-1">
+          <li>2개 이상의 교과 융합 및 최소 2개의 성취기준 포함을 자동 검증</li>
+          <li>학년대별(1–4: 2022, 5–6: 2015) 성취기준 파일을 이용한 정확한 매칭</li>
+          <li>모델: gemini-2.5-flash, API 키는 브라우저에만 저장</li>
+        </ul>
+      </section>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <section className="text-center mt-8">
+        <p className="text-ink/80 mb-6 leading-relaxed">
+          초등 교사를 위한 AI 융합 프로젝트 수업 설계 도구. 키워드와 학년만 입력하면 3단계 마법사로 완전한 수업지도안을 자동 생성합니다.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
+          <button
+            onClick={() => router.push("/settings")}
+            className="btn-secondary px-6 py-3 flex-1"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            API 키 설정
+          </button>
+          <button
+            onClick={() => setCurrentStep(1)}
+            className="btn-primary px-8 py-3 flex-1"
           >
-            Read our docs
-          </a>
+            마법사 시작하기 →
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <p className="text-xs text-[var(--text-muted)] mt-4">
+          3단계 과정: 아이디어 생성 → 시나리오 설계 → 지도안 완성
+        </p>
+      </section>
     </div>
   );
 }
