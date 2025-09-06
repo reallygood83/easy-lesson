@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLessonStore, LessonIdea, AutoStandard } from "@/store/useLessonStore";
+import { useLessonStore, AutoStandard } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 
@@ -16,7 +16,6 @@ type StandardItem = {
 };
 
 export default function ScenarioStep() {
-  const { nextStep } = useLessonStore();
   const router = useRouter();
   const { selectedIdea, keywords, gradeBand, scenario, feedback, feedbackOptions, autoStandards, setScenario, setFeedback, setFeedbackOptions, setAutoStandards, setValidation, step3Valid, setStep3Valid } = useLessonStore();
   const { generate, loading, error } = useGemini();
@@ -35,7 +34,7 @@ export default function ScenarioStep() {
   useEffect(() => {
     const isValid = scenario.length > 0 && autoStandards.length >= 2;
     setStep3Valid(isValid);
-  }, [scenario, autoStandards.length]);
+  }, [scenario, autoStandards.length, setStep3Valid]);
 
   const loadAutoStandards = async () => {
     if (!selectedIdea) return;
@@ -132,9 +131,6 @@ AI 윤리 고려, 협력 활동 강조.`;
     generateScenario(); // 피드백 반영 재생성
   };
 
-  const handleNext = () => {
-    nextStep();
-  };
 
   if (!selectedIdea) {
     return (

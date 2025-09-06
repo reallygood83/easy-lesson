@@ -1,4 +1,4 @@
-self.onmessage = async (e: MessageEvent) => {
+self.onmessage = async (e: MessageEvent<{ filePath: string; gradeBand: "1-2" | "3-4" | "5-6" }>) => {
   const { filePath, gradeBand } = e.data;
 
   try {
@@ -16,7 +16,7 @@ self.onmessage = async (e: MessageEvent) => {
     // 결과 전송
     self.postMessage({ items });
   } catch (error) {
-    self.postMessage({ error: (error as Error).message });
+    self.postMessage({ error: error instanceof Error ? error.message : "Unknown error" });
   }
 };
 
@@ -30,13 +30,21 @@ function cleanText(s: string): string {
     .trim();
 }
 
-function parse2015(md: string): any[] {
-  const items: any[] = [];
+type StandardItem = {
+  framework: "2015" | "2022";
+  subject: string;
+  gradeBand: "1-2" | "3-4" | "5-6";
+  code: string;
+  statement: string;
+};
+
+function parse2015(md: string): StandardItem[] {
+  const items: StandardItem[] = [];
   const lines = md.split(/\r?\n/);
   let currentSubject = "";
-  const gradeBand: any = "5-6";
+  const gradeBand: StandardItem["gradeBand"] = "5-6";
 
-  for (let raw of lines) {
+  for (const raw of lines) {
     const line = raw.trim();
     if (!line) continue;
 
@@ -61,13 +69,13 @@ function parse2015(md: string): any[] {
   return items;
 }
 
-function parse2022(md: string): any[] {
-  const items: any[] = [];
+function parse2022(md: string): StandardItem[] {
+  const items: StandardItem[] = [];
   const lines = md.split(/\r?\n/);
   let currentSubject = "";
-  let currentBand: any = "";
+  let currentBand: StandardItem["gradeBand"] | "" = "";
 
-  for (let raw of lines) {
+  for (const raw of lines) {
     const line = raw.trim();
     if (!line) continue;
 
@@ -107,8 +115,8 @@ function parse2022(md: string): any[] {
   return items;
 }
 
-function parseStandards(mdContent: string, gradeBand: string): any[] {
-  let items: any[] = [];
+function parseStandards(mdContent: string, gradeBand: "1-2" | "3-4" | "5-6"): StandardItem[] {
+  let items: StandardItem[] = [];
   
   // 2015 파서 호출 (파일 경로가 5-6학년인 경우)
   if (gradeBand === "5-6") {
@@ -120,14 +128,14 @@ function parseStandards(mdContent: string, gradeBand: string): any[] {
 
   // Deduplicate and sort
   const seen = new Set<string>();
-  const unique = items.filter((it: any) => {
+  const unique = items.filter((it: StandardItem) => {
     const key = `${it.framework}:${it.code}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 
-  unique.sort((a: any, b: any) => {
+  unique.sort((a: StandardItem, b: StandardItem) => {
     if (a.framework !== b.framework) return a.framework.localeCompare(b.framework);
     if (a.subject !== b.subject) return a.subject.localeCompare(b.subject, "ko");
     if (a.gradeBand !== b.gradeBand) return a.gradeBand.localeCompare(b.gradeBand);

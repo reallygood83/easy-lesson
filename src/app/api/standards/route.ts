@@ -39,7 +39,7 @@ function parse2015(md: string): StandardItem[] {
   let currentSubject = "";
   const gradeBand: StandardItem["gradeBand"] = "5-6";
 
-  for (let raw of lines) {
+  for (const raw of lines) {
     const line = raw.trim();
     if (!line) continue;
 
@@ -70,7 +70,7 @@ function parse2022(md: string): StandardItem[] {
   let currentSubject = "";
   let currentBand: StandardItem["gradeBand"] | "" = "";
 
-  for (let raw of lines) {
+  for (const raw of lines) {
     const line = raw.trim();
     if (!line) continue;
 
@@ -125,8 +125,8 @@ export async function GET() {
   try {
     if (txt2015) items = items.concat(parse2015(txt2015));
     if (txt2022) items = items.concat(parse2022(txt2022));
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "파싱 중 오류" }, { status: 500 });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "파싱 중 오류" }, { status: 500 });
   }
 
   // Deduplicate by (framework+code) in case of duplicates

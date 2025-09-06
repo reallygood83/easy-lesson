@@ -6,10 +6,8 @@ import { useLessonStore } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 import html2pdf from "html2pdf.js";
-import { Document, Packer, Paragraph, TextRun } from "docx";
 
 export default function PlanStep() {
-  const { nextStep } = useLessonStore();
   const router = useRouter();
   const { scenario, autoStandards, feedback, feedbackOptions, plan, validation, gradeBand, setPlan, setValidation, step4Valid, setStep4Valid } = useLessonStore();
   const { generate, loading, error } = useGemini();
@@ -140,7 +138,7 @@ export default function PlanStep() {
   useEffect(() => {
     const isValid = plan.length > 0 && validation.isValid;
     setStep4Valid(isValid);
-  }, [plan, validation.isValid]);
+  }, [plan, validation.isValid, setStep4Valid]);
 
   if (!scenario) {
     return (

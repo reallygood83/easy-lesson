@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLessonStore } from "@/store/useLessonStore";
+import { useLessonStore, LessonIdea } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
 
 export default function IdeaStep() {
-  const router = useRouter();
   const { keywords, gradeBand, ideas, setKeywords, setGradeBand, setIdeas, setSelectedIdea, step1Valid, setStep1Valid } = useLessonStore();
   const { generate, loading, error } = useGemini();
   const [inputKeywords, setInputKeywords] = useState("");
@@ -23,7 +22,7 @@ export default function IdeaStep() {
   useEffect(() => {
     const isValid = inputKeywords.trim().length > 0 && gradeBand !== "" && localIdeas.length > 0;
     setStep1Valid(isValid);
-  }, [inputKeywords, gradeBand, localIdeas.length]);
+  }, [inputKeywords, gradeBand, localIdeas.length, setStep1Valid]);
 
   const handleGenerateIdeas = async () => {
     if (!inputKeywords.trim() || !gradeBand) {
@@ -47,7 +46,7 @@ export default function IdeaStep() {
     }
   };
 
-  const handleSelectIdea = (idea: any) => {
+  const handleSelectIdea = (idea: LessonIdea) => {
     console.log("[DEBUG] Idea selected:", idea);
     setSelectedIdea(idea);
     // Wizard 네비게이션은 Wizard 컴포넌트에서 처리
@@ -77,7 +76,7 @@ export default function IdeaStep() {
               <label className="block text-sm font-medium text-[var(--text-strong)] mb-2">학년군</label>
               <select
                 value={gradeBand}
-                onChange={(e) => setGradeBand(e.target.value as any)}
+                onChange={(e) => setGradeBand(e.target.value as "1-2" | "3-4" | "5-6")}
                 className="w-full rounded-md border border-[var(--rose-200)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--rose-300)]"
               >
                 <option value="">학년 선택</option>
@@ -107,7 +106,7 @@ export default function IdeaStep() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-[var(--text-strong)]">추천 프로젝트 아이디어 (3개)</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {localIdeas.map((idea: any) => (
+              {localIdeas.map((idea: LessonIdea) => (
                 <div key={idea.id} className="card p-4 hover:shadow-md transition-shadow border rounded-lg">
                   <h3 className="text-lg font-semibold mb-2 text-[var(--text-strong)]">{idea.title}</h3>
                   <p className="text-[var(--text-muted)] mb-3 leading-relaxed">{idea.description}</p>
