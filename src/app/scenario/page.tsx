@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useLessonStore, AutoStandard } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
+import LoadingModal from "@/components/LoadingModal";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -372,7 +373,11 @@ AI 윤리 고려, 협력 활동 강조.`;
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => {
-                  // 지도안 페이지로 이동
+                  if (!scenario.trim()) {
+                    alert('시나리오를 먼저 생성해주세요.');
+                    return;
+                  }
+                  // 시나리오가 이미 저장소에 저장되어 있으므로 바로 이동
                   window.location.href = '/plan';
                 }}
                 className="btn-primary flex-1"
@@ -385,6 +390,9 @@ AI 윤리 고려, 협력 활동 강조.`;
             {/* 다음 단계 버튼은 Wizard에서 처리 */}
           </div>
         )}
+
+        {/* AI 생성 중 모달 */}
+        <LoadingModal isOpen={loading} message="AI 시나리오 생성 중" />
       </div>
     </WizardStep>
   );

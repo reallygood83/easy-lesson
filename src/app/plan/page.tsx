@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLessonStore } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
+import LoadingModal from "@/components/LoadingModal";
 // html2pdf 최소 타입 정의
 type Html2PdfOptions = {
   margin: number;
@@ -438,7 +439,11 @@ ${plans[session]}
            )}
          </div>
 
-
+         {/* AI 생성 중 모달 */}
+         <LoadingModal 
+           isOpen={Object.values(generating).some(g => g) || Object.values(generatingWorksheet).some(g => g)} 
+           message={Object.values(generating).some(g => g) ? "AI 지도안 생성 중" : "AI 활동지 생성 중"} 
+         />
       </div>
     </WizardStep>
   );

@@ -13,7 +13,7 @@ export default function Footer() {
             오픈채팅방
           </a>
         </div>
-        <p className="text-xs opacity-75">© 2025 Moon-Jung Kim | AI 융합교육 수업지도안 자동 생성 도구</p>
+        <p className="text-ink font-semibold text-base" style={{fontSize: '1.2em'}}>© 2025 Moon-Jung Kim | AI 융합교육 수업지도안 자동 생성 도구</p>
       </div>
     </footer>
   );

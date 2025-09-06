@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useLessonStore, LessonIdea } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
+import LoadingModal from "@/components/LoadingModal";
 
 export default function IdeaStep() {
   const { nextStep } = useLessonStore();
@@ -11,6 +12,9 @@ export default function IdeaStep() {
   const { generate, loading, error } = useGemini();
   const [inputKeywords, setInputKeywords] = useState("");
   const [localIdeas, setLocalIdeas] = useState(ideas); // 로컬 상태로 UI 관리
+  const [selectedIdeaId, setSelectedIdeaId] = useState<number | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingIdea, setPendingIdea] = useState<LessonIdea | null>(null);
 
   // 컴포넌트 마운트 시 Zustand 상태 동기화
   useEffect(() => {
@@ -57,11 +61,30 @@ export default function IdeaStep() {
 
   const handleSelectIdea = (idea: LessonIdea) => {
     console.log("[DEBUG] Idea selected:", idea);
-    setSelectedIdea(idea);
-    // 아이디어 선택 시 step1을 valid로 설정
-    const { validateStep } = useLessonStore.getState();
-    validateStep(1, true);
-    nextStep();
+    setSelectedIdeaId(idea.id);
+    setPendingIdea(idea);
+    setShowConfirmModal(true);
+  };
+
+  const confirmSelection = () => {
+    if (pendingIdea) {
+      setSelectedIdea(pendingIdea);
+      // 아이디어 선택 시 step1을 valid로 설정
+      const { validateStep } = useLessonStore.getState();
+      validateStep(1, true);
+      setShowConfirmModal(false);
+      
+      // 1초 후 자동으로 다음 단계로 이동
+      setTimeout(() => {
+        nextStep();
+      }, 1000);
+    }
+  };
+
+  const cancelSelection = () => {
+    setSelectedIdeaId(null);
+    setPendingIdea(null);
+    setShowConfirmModal(false);
   };
 
   return (
@@ -119,7 +142,9 @@ export default function IdeaStep() {
             <h2 className="text-xl font-semibold text-ink">✨ 추천 프로젝트 아이디어 (3개)</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {localIdeas.map((idea: LessonIdea) => (
-                <div key={idea.id} className="card p-4 hover:shadow-md transition-shadow border rounded-lg">
+                <div key={idea.id} className={`card p-4 hover:shadow-md transition-all border rounded-lg ${
+                  selectedIdeaId === idea.id ? 'ring-2 ring-rose-300 bg-rose-50 border-rose-300' : ''
+                }`}>
                   <h3 className="text-lg font-semibold mb-2 text-ink">{idea.title}</h3>
                   <p className="text-ink/70 mb-3 leading-relaxed">{idea.description}</p>
                   <div className="space-y-2 text-sm mb-4">
@@ -136,15 +161,49 @@ export default function IdeaStep() {
                   </div>
                   <button
                     onClick={() => handleSelectIdea(idea)}
-                    className="w-full btn-secondary"
+                    className={`w-full transition-all ${
+                      selectedIdeaId === idea.id 
+                        ? 'bg-rose-300 text-white border-rose-300 font-semibold' 
+                        : 'btn-secondary'
+                    }`}
                   >
-                    ✅ 이 아이디어 선택
+                    {selectedIdeaId === idea.id ? '🎯 선택됨!' : '✅ 이 아이디어 선택'}
                   </button>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* 확인 모달 */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4 text-ink">🎯 아이디어 선택 확인</h3>
+              <p className="text-ink/70 mb-6">
+                <strong>{pendingIdea?.title}</strong>을(를) 선택하셨습니다.<br/>
+                시나리오 섹션으로 이동하시겠습니까?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelSelection}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={confirmSelection}
+                  className="flex-1 btn-primary"
+                >
+                  확인 및 이동
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI 생성 중 모달 */}
+        <LoadingModal isOpen={loading} message="AI 아이디어 생성 중" />
       </div>
     </WizardStep>
   );
