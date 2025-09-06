@@ -34,7 +34,13 @@ export default function IdeaStep() {
       const prompt = `초등학교 ${gradeBand}학년을 대상으로 한 AI 융합 프로젝트 수업 아이디어를 3개 제안해 주세요. 키워드: ${inputKeywords}. 각 아이디어는 프로젝트 제목, 간단한 설명, 최소 3차시로 구성된 개요를 포함해야 합니다. 융합 교과 2개 이상을 고려하고, AI/디지털 도구 활용을 강조하세요. JSON 형식으로 출력하세요: [{"id":1,"title":"제목","description":"설명","sessions":[{"title":"1차시","overview":"개요"},{"title":"2차시","overview":"개요"},{"title":"3차시","overview":"개요"}]}]`;
 
       const response = await generate(prompt);
-      const parsedIdeas = JSON.parse(response);
+      // Extract JSON from markdown code block if present
+      let jsonString = response;
+      const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      }
+      const parsedIdeas = JSON.parse(jsonString.trim());
       setKeywords(inputKeywords.split(",").map(k => k.trim()));
       setIdeas(parsedIdeas);
       setLocalIdeas(parsedIdeas);
