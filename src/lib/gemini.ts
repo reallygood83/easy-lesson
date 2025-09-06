@@ -15,7 +15,7 @@ export class GeminiAPI {
   private baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
   constructor() {
-    this.apiKey = localStorage.getItem("ai_planner_api_key") || "";
+    this.apiKey = localStorage.getItem("gemini-api-key") || "";
     if (!this.apiKey) {
       throw new Error("Gemini API 키가 설정되지 않았습니다. 설정 페이지에서 입력해 주세요.");
     }
@@ -42,6 +42,9 @@ export class GeminiAPI {
       }
 
       const data: GeminiResponse = await response.json();
+      if (!data.candidates || data.candidates.length === 0) {
+        throw new Error("Gemini 응답에 내용이 없습니다. API 키를 확인해 주세요.");
+      }
       return data.candidates[0]?.content.parts[0]?.text || "";
     } catch (error) {
       console.error("[Gemini API Error]", error);
