@@ -5,7 +5,6 @@ import { useLessonStore } from "@/store/useLessonStore";
 
 export default function Home() {
   const router = useRouter();
-  const { setCurrentStep } = useLessonStore();
   return (
     <div className="min-h-[70vh] mx-auto max-w-5xl">
       <section className="card p-6 md:p-8 mt-6">

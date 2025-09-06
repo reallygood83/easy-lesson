@@ -22,7 +22,7 @@ type Html2Pdf = () => Html2PdfChain;
 
 export default function PlanStep() {
   const { scenario, autoStandards, gradeBand, setStep4Valid, prevStep } = useLessonStore();
-  const { generate, loading, error } = useGemini();
+  const { generate, error } = useGemini();
   const [plans, setPlans] = useState<{[key: string]: string}>({
     "1차시": "",
     "2차시": "",
@@ -373,7 +373,6 @@ ${plans[session]}
     
     const lines = content.split('\n');
     const formattedContent: ReactElement[] = [];
-    let currentSection = '';
     let listItems: string[] = [];
     
     const flushListItems = () => {

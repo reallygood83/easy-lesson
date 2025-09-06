@@ -135,7 +135,7 @@ export async function GET() {
     if (!txt2015 && !txt2022) {
       items = FALLBACK_ITEMS;
     }
-  } catch (e: unknown) {
+  } catch {
     // On parsing error, still try to return fallback to keep UI functional
     items = FALLBACK_ITEMS;
   }
