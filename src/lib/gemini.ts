@@ -12,10 +12,10 @@ export interface GeminiResponse {
 
 export class GeminiAPI {
   private apiKey: string;
-  private baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  private baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
   constructor() {
-    this.apiKey = localStorage.getItem("gemini-api-key") || "";
+    this.apiKey = localStorage.getItem("ai_planner_api_key") || "";
     if (!this.apiKey) {
       throw new Error("Gemini API 키가 설정되지 않았습니다. 설정 페이지에서 입력해 주세요.");
     }
