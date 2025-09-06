@@ -20,9 +20,30 @@ type Html2PdfChain = {
 type Html2Pdf = () => Html2PdfChain;
 
 export default function PlanStep() {
-  const { scenario, autoStandards, /* feedback, */ feedbackOptions, plan, validation, gradeBand, setPlan, setValidation, setStep4Valid, prevStep } = useLessonStore();
+  const { scenario, autoStandards, gradeBand, setStep4Valid, prevStep } = useLessonStore();
   const { generate, loading, error } = useGemini();
-  const [generating, setGenerating] = useState(false);
+  const [plans, setPlans] = useState<{[key: string]: string}>({
+    "1차시": "",
+    "2차시": "",
+    "3차시": ""
+  });
+  const [generating, setGenerating] = useState<{[key: string]: boolean}>({
+    "1차시": false,
+    "2차시": false,
+    "3차시": false
+  });
+  const [feedbackOptions] = useState({
+    "구체적 활동 예시 추가": false,
+    "평가 루브릭 상세화": false,
+    "차별화 전략 포함": false,
+    "안전 고려사항 명시": false,
+  });
+  const [validation, setValidation] = useState({
+    subjectsCount: 0,
+    standardsCount: 0,
+    sessionsCount: 0,
+    isValid: false,
+  });
   const html2pdfRef = useRef<Html2Pdf | null>(null);
 
   // html2pdf 클라이언트 전용 로딩
@@ -43,13 +64,13 @@ export default function PlanStep() {
     };
   }, []);
 
-  const generateLessonPlan = async () => {
+  const generateLessonPlan = async (session: string) => {
     if (!scenario || autoStandards.length < 2) {
       alert("시나리오와 성취기준(2개 이상)을 먼저 준비해 주세요.");
       return;
     }
 
-    setGenerating(true);
+    setGenerating(prev => ({ ...prev, [session]: true }));
     try {
       const standardsText = autoStandards.map(s => `${s.subject}(${s.framework}) ${s.code}: ${s.statement}`).join("\n");
       const feedbackFlags = Object.entries(feedbackOptions)
@@ -57,7 +78,7 @@ export default function PlanStep() {
         .map(([k]) => `- ${k}`)
         .join("\n");
 
-      const templatePrompt = `다음 시나리오를 기반으로 초등 ${gradeBand}학년 대상 3차시 수업지도안을 작성하세요.
+      const templatePrompt = `다음 시나리오를 기반으로 초등 ${gradeBand}학년 대상 ${session} 수업지도안을 작성하세요.
 
 [시나리오]
 ${scenario}
@@ -69,43 +90,50 @@ ${standardsText}
 ${feedbackFlags || "(없음)"}
 
 [요구사항]
-- 반드시 위 시나리오의 내용과 연계된 지도안 작성
-- 3차시 구성 (1차시, 2차시, 3차시 각각 명확히 구분)
-- 각 차시별로 다음 항목 포함:
-  * 차시명
+- 반드시 위 시나리오의 내용과 연계된 ${session} 지도안 작성
+- ${session}에 해당하는 구체적인 활동과 목표 설정
+- 다음 항목 포함:
+  * 차시명: ${session}
   * 학습목표
   * 준비물
   * 단계별 활동 (도입-전개-정리)
   * 평가 기준
 - 시나리오에서 제시된 AI 도구와 융합 교과 활용
 - 복사하기 쉬운 텍스트 형식으로 작성 (마크다운 문법 최소화)
-- 각 차시는 명확한 구분선으로 분리`;
+- ${session}만의 고유한 학습 내용과 활동 포함`;
 
       const response = await generate(templatePrompt, { temperature: 0.5, maxTokens: 4096 });
-      setPlan(response);
+      setPlans(prev => ({ ...prev, [session]: response }));
       
-      // 검증
+      // 검증 - 모든 차시가 생성되었는지 확인
+      const updatedPlans = { ...plans, [session]: response };
+      const completedSessions = Object.values(updatedPlans).filter(plan => plan.length > 0).length;
       const subjectsCount = new Set(autoStandards.map(s => s.subject)).size;
       setValidation({
         subjectsCount,
         standardsCount: autoStandards.length,
-        sessionsCount: 3,
-        isValid: subjectsCount >= 2 && autoStandards.length >= 2,
+        sessionsCount: completedSessions,
+        isValid: subjectsCount >= 2 && autoStandards.length >= 2 && completedSessions >= 1,
       });
-      setStep4Valid(true);
+      setStep4Valid(completedSessions >= 1);
       
-      console.log("[DEBUG] Lesson plan generated and validated");
+      console.log(`[DEBUG] ${session} lesson plan generated and validated`);
     } catch (err) {
-      console.error("지도안 생성 실패:", err);
-      alert("지도안 생성 중 오류가 발생했습니다.");
+      console.error(`${session} 지도안 생성 실패:`, err);
+      alert(`${session} 지도안 생성 중 오류가 발생했습니다.`);
     } finally {
-      setGenerating(false);
+      setGenerating(prev => ({ ...prev, [session]: false }));
     }
   };
 
   const downloadMarkdown = () => {
-    if (!plan) return;
-    const blob = new Blob([plan], { type: "text/markdown" });
+    const allPlans = Object.entries(plans)
+      .filter(([, content]) => content)
+      .map(([session, content]) => `# ${session}\n\n${content}`)
+      .join('\n\n---\n\n');
+    
+    if (!allPlans) return;
+    const blob = new Blob([allPlans], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -115,10 +143,15 @@ ${feedbackFlags || "(없음)"}
   };
 
   const downloadPDF = async () => {
-    if (!plan) return;
+    const allPlans = Object.entries(plans)
+      .filter(([, content]) => content)
+      .map(([session, content]) => `<h1>${session}</h1><div>${content.replace(/\n/g, '<br>')}</div>`)
+      .join('<hr>');
+    
+    if (!allPlans) return;
     
     const element = document.createElement('div');
-    element.innerHTML = plan.replace(/\n/g, '<br>');
+    element.innerHTML = allPlans;
     element.style.position = 'absolute';
     element.style.left = '-9999px';
     document.body.appendChild(element);
@@ -141,7 +174,12 @@ ${feedbackFlags || "(없음)"}
   };
 
   const downloadDocx = async () => {
-    if (!plan) return;
+    const allPlans = Object.entries(plans)
+      .filter(([, content]) => content)
+      .map(([session, content]) => `${session}\n\n${content}`)
+      .join('\n\n---\n\n');
+    
+    if (!allPlans) return;
     
     const { Document, Packer, Paragraph, TextRun } = await import('docx');
     
@@ -152,7 +190,7 @@ ${feedbackFlags || "(없음)"}
           new Paragraph({
             children: [
               new TextRun({
-                text: plan,
+                text: allPlans,
                 size: 24,
                 font: "Calibri"
               })
@@ -173,9 +211,10 @@ ${feedbackFlags || "(없음)"}
 
   // validation 체크
   useEffect(() => {
-    const isValid = plan.length > 0 && validation.isValid;
+    const completedSessions = Object.values(plans).filter(plan => plan.length > 0).length;
+    const isValid = completedSessions >= 1 && validation.isValid;
     setStep4Valid(isValid);
-  }, [plan, validation.isValid, setStep4Valid]);
+  }, [plans, validation.isValid, setStep4Valid]);
 
   if (!scenario) {
     return (
@@ -221,52 +260,72 @@ ${feedbackFlags || "(없음)"}
           </div>
         </div>
 
-        {/* 생성 및 내보내기 */}
+        {/* 차시별 생성 */}
         <div className="card p-6 space-y-4">
-          <button onClick={generateLessonPlan} disabled={generating || loading} className="btn-primary w-full disabled:opacity-50">
-            {generating || loading ? "생성 중..." : "수업지도안 생성하기"}
-          </button>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <button onClick={downloadMarkdown} className="btn-ghost">Markdown로 다운로드</button>
-            <button onClick={downloadPDF} className="btn-ghost">PDF로 다운로드</button>
-            <button onClick={downloadDocx} className="btn-ghost">Word(docx)로 다운로드</button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">차시별 수업지도안 생성</h3>
+          
+          <div className="grid grid-cols-3 gap-4">
+            {["1차시", "2차시", "3차시"].map((session) => (
+              <button
+                key={session}
+                onClick={() => generateLessonPlan(session)}
+                disabled={generating[session] || !scenario || autoStandards.length < 2}
+                className="btn-primary disabled:opacity-50"
+              >
+                {generating[session] ? "생성 중..." : `${session} 생성`}
+              </button>
+            ))}
           </div>
+
+
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
         </div>
 
-        {/* 생성된 지도안 표시 */}
-        {plan && (
-          <div className="card p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">생성된 수업지도안 (3차시)</h3>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => navigator.clipboard.writeText(plan)}
-                  className="btn-primary text-sm"
-                >
-                  📋 복사하기
-                </button>
-                <button onClick={downloadMarkdown} className="btn-secondary text-sm">
-                  📄 Markdown
-                </button>
-                <button onClick={downloadPDF} className="btn-secondary text-sm">
-                  📄 PDF
-                </button>
-                <button onClick={downloadDocx} className="btn-secondary text-sm">
-                  📄 DOCX
-                </button>
-              </div>
-            </div>
-            <div className="bg-white border rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-auto max-h-96">
-              {plan}
-            </div>
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
-              💡 <strong>사용 팁:</strong> 위 지도안을 복사하여 워드나 한글 문서에 붙여넣기 하세요. 각 차시별로 구분되어 있어 편집하기 쉽습니다.
-            </div>
-          </div>
-        )}
+        {/* 차시별 지도안 표시 */}
+         <div className="space-y-4">
+           {["1차시", "2차시", "3차시"].map((session) => (
+             plans[session] && (
+               <div key={session} className="card p-6">
+                 <div className="flex justify-between items-center mb-4">
+                   <h3 className="text-lg font-semibold">{session} 수업지도안</h3>
+                   <button 
+                     onClick={() => navigator.clipboard.writeText(plans[session])}
+                     className="btn-primary text-sm"
+                   >
+                     📋 복사하기
+                   </button>
+                 </div>
+                 <div className="bg-white border rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-auto max-h-96">
+                   {plans[session]}
+                 </div>
+               </div>
+             )
+           ))}
+           
+           {/* 전체 다운로드 버튼 */}
+           {Object.values(plans).some(plan => plan.length > 0) && (
+             <div className="card p-6">
+               <h3 className="text-lg font-semibold mb-4">전체 지도안 다운로드</h3>
+               <div className="flex gap-2">
+                 <button onClick={downloadMarkdown} className="btn-secondary text-sm">
+                   📄 Markdown
+                 </button>
+                 <button onClick={downloadPDF} className="btn-secondary text-sm">
+                   📄 PDF
+                 </button>
+                 <button onClick={downloadDocx} className="btn-secondary text-sm">
+                   📄 DOCX
+                 </button>
+               </div>
+               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+                 💡 <strong>사용 팁:</strong> 생성된 모든 차시의 지도안을 하나의 파일로 다운로드할 수 있습니다.
+               </div>
+             </div>
+           )}
+         </div>
+
+
       </div>
     </WizardStep>
   );
