@@ -4,8 +4,8 @@ import fs from "fs";
 export const runtime = "nodejs";
 
 // Absolute paths to source Markdown files on the user's machine
-const PATH_2015 = "/Users/moon/Desktop/newcu/2015 성취기준 5-6학년 .md";
-const PATH_2022 = "/Users/moon/Desktop/newcu/2022 개정 교육과정 초등학교 성취기준 .md";
+const PATH_2015 = "./2015 성취기준 5-6학년 .md";
+const PATH_2022 = "./2022 개정 교육과정 초등학교 성취기준 .md";
 
 export type StandardItem = {
   framework: "2015" | "2022";
