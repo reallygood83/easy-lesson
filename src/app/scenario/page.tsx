@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLessonStore, AutoStandard } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
@@ -21,7 +21,7 @@ export default function ScenarioStep() {
   const [feedbackText, setFeedbackText] = useState(feedback);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  const loadAutoStandards = async () => {
+  const loadAutoStandards = useCallback(async () => {
     if (!selectedIdea) return;
 
     try {
@@ -65,14 +65,14 @@ export default function ScenarioStep() {
       // fallback: 임의 2개 선택 (실제로는 에러 처리 UI)
       setAutoStandards([]);
     }
-  };
+  }, [selectedIdea, keywords, gradeBand, setAutoStandards]);
 
   // 자동 성취기준 선택
   useEffect(() => {
     if (selectedIdea && keywords.length > 0 && gradeBand && autoStandards.length === 0) {
       loadAutoStandards();
     }
-  }, [selectedIdea, keywords, gradeBand, autoStandards.length, loadAutoStandards]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedIdea, keywords, gradeBand, autoStandards.length, loadAutoStandards]);
 
   // validation 체크
   useEffect(() => {
@@ -146,7 +146,7 @@ AI 윤리 고려, 협력 활동 강조.`;
   return (
     <WizardStep label="2단계 · 융합교육 시나리오 생성">
       <div className="mx-auto max-w-5xl space-y-6">
-        <p className="text-ink/80">선택된 아이디어 "{selectedIdea.title}"를 기반으로 시나리오를 생성합니다.</p>
+        <p className="text-ink/80">선택된 아이디어 &quot;{selectedIdea.title}&quot;를 기반으로 시나리오를 생성합니다.</p>
 
         {/* 선택된 아이디어 표시 */}
         <div className="card p-4">

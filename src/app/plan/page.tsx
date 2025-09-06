@@ -24,7 +24,7 @@ export default function PlanStep() {
       // 워크시트 템플릿 섹션별 프롬프트 체인
       const standardsText = autoStandards.map(s => `[${s.code}] ${s.subject}: ${s.statement}`).join("\n");
       const feedbackText = Object.entries(feedbackOptions)
-        .filter(([key1, checked]) => checked)
+        .filter(([, checked]) => checked)
         .map(([key]) => key)
         .join(", ") || feedback || "없음";
 
