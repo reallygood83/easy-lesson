@@ -307,7 +307,7 @@ ${plans[session]}
         <div className="card p-6 md:p-8 mt-4">
           <p className="text-ink/80">먼저 융합교육 시나리오를 생성해 주세요.</p>
           <button onClick={prevStep} className="mt-4 btn-primary">
-            시나리오 생성으로 돌아가기
+            ⬅️ 시나리오 생성으로 돌아가기
           </button>
         </div>
       </div>
@@ -315,13 +315,13 @@ ${plans[session]}
   }
 
   return (
-    <WizardStep label="3단계 · 최종 수업지도안 생성">
+    <WizardStep label="3단계 · 📝 최종 수업지도안 생성">
       <div className="mx-auto max-w-6xl space-y-6">
-        <p className="text-ink/80">워크시트 형식에 맞춰 3차시 수업지도안을 자동 생성합니다.</p>
+        <p className="text-ink/70">📚 워크시트 형식에 맞춰 3차시 수업지도안을 자동 생성합니다.</p>
 
         {/* 검증 상태 표시 */}
         <div className="card p-4">
-          <h3 className="font-semibold mb-2">검증 결과</h3>
+          <h3 className="font-semibold mb-2 text-ink">✅ 검증 결과</h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className={validation.isValid ? "text-green-600" : "text-red-600"}>
               <div>교과 수: {validation.subjectsCount}/2+</div>
@@ -346,7 +346,7 @@ ${plans[session]}
 
         {/* 차시별 생성 */}
         <div className="card p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">차시별 수업지도안 생성</h3>
+          <h3 className="text-lg font-semibold text-ink mb-4">📖 차시별 수업지도안 생성</h3>
           
           <div className="grid grid-cols-3 gap-4">
             {["1차시", "2차시", "3차시"].map((session) => (
@@ -356,7 +356,7 @@ ${plans[session]}
                 disabled={generating[session] || !scenario || autoStandards.length < 2}
                 className="btn-primary disabled:opacity-50"
               >
-                {generating[session] ? "생성 중..." : `${session} 생성`}
+                {generating[session] ? "⏳ 생성 중..." : `✨ ${session} 생성`}
               </button>
             ))}
           </div>
@@ -372,7 +372,7 @@ ${plans[session]}
              plans[session] && (
                <div key={session} className="card p-6">
                  <div className="flex justify-between items-center mb-4">
-                   <h3 className="text-lg font-semibold">{session} 수업지도안</h3>
+                   <h3 className="text-lg font-semibold text-ink">{session} 수업지도안</h3>
                    <div className="flex gap-2">
                      <button 
                        onClick={() => navigator.clipboard.writeText(plans[session])}
@@ -385,7 +385,7 @@ ${plans[session]}
                        disabled={generatingWorksheet[session]}
                        className="btn-primary text-sm"
                      >
-                       {generatingWorksheet[session] ? '생성 중...' : '📝 활동지 생성'}
+                       {generatingWorksheet[session] ? '⏳ 생성 중...' : '📝 활동지 생성'}
                      </button>
                    </div>
                  </div>
@@ -419,7 +419,7 @@ ${plans[session]}
            {/* 전체 다운로드 버튼 */}
            {Object.values(plans).some(plan => plan.length > 0) && (
              <div className="card p-6">
-               <h3 className="text-lg font-semibold mb-4">전체 지도안 다운로드</h3>
+               <h3 className="text-lg font-semibold mb-4 text-ink">💾 전체 지도안 다운로드</h3>
                <div className="flex gap-2">
                  <button onClick={downloadMarkdown} className="btn-secondary text-sm">
                    📄 Markdown

@@ -229,15 +229,15 @@ AI 윤리 고려, 협력 활동 강조.`;
   }
 
   return (
-    <WizardStep label="2단계 · 융합교육 시나리오 생성">
+    <WizardStep label="📋 2단계 · 융합교육 시나리오 생성">
       <div className="mx-auto max-w-5xl space-y-6">
-        <p className="text-ink/80">선택된 아이디어 &quot;{selectedIdea.title}&quot;를 기반으로 시나리오를 생성합니다.</p>
+        <p className="text-ink/70">🎨 선택된 아이디어 &quot;{selectedIdea.title}&quot;를 기반으로 시나리오를 생성합니다.</p>
 
         {/* 선택된 아이디어 표시 */}
         <div className="card p-4">
-          <h3 className="font-semibold mb-2">선택된 프로젝트:</h3>
+          <h3 className="font-semibold mb-2">🎯 선택된 프로젝트:</h3>
           <p className="mb-2">{selectedIdea.description}</p>
-          <div className="text-sm text-[var(--text-muted)]">
+          <div className="text-sm text-ink/70">
             키워드: {keywords.join(", ")} | 학년: {gradeBand}학년
           </div>
         </div>
@@ -245,19 +245,19 @@ AI 윤리 고려, 협력 활동 강조.`;
         {/* 자동 선택된 성취기준 표시 */}
         {autoStandards.length > 0 && (
           <div className="card p-4">
-            <h3 className="font-semibold mb-2">AI 자동 선택 성취기준 ({autoStandards.length}개)</h3>
+            <h3 className="font-semibold mb-2">🎯 AI 자동 선택 성취기준 ({autoStandards.length}개)</h3>
             <div className="space-y-2">
               {autoStandards.map((standard, idx) => (
                 <div key={idx} className="flex items-start gap-2 p-2 bg-gray-50 rounded">
-                  <span className="font-mono text-sm text-[var(--rose-600)]">{standard.code}</span>
+                  <span className="font-mono text-sm text-rose-300">{standard.code}</span>
                   <div>
                     <div className="font-medium">{standard.subject} ({standard.gradeBand}학년)</div>
-                    <div className="text-sm text-[var(--text-muted)]">{standard.statement}</div>
+                    <div className="text-sm text-ink/70">{standard.statement}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-[var(--text-muted)] mt-2">교과 수: {new Set(autoStandards.map(s => s.subject)).size}개</p>
+            <p className="text-xs text-ink/70 mt-2">교과 수: {new Set(autoStandards.map(s => s.subject)).size}개</p>
           </div>
         )}
 
@@ -268,7 +268,7 @@ AI 윤리 고려, 협력 활동 강조.`;
             disabled={generating || loading || autoStandards.length < 2}
             className="btn-primary disabled:opacity-50 w-full"
           >
-            {generating || loading ? "생성 중..." : "시나리오 생성하기"}
+            {generating || loading ? "⚡ 생성 중..." : "📝 시나리오 생성하기"}
           </button>
           {error && <p className="text-red-600 text-sm">{error}</p>}
         </div>
@@ -278,7 +278,7 @@ AI 윤리 고려, 협력 활동 강조.`;
           <div className="card p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-blue-500">
             <div className="flex items-center mb-6">
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-              <h3 className="text-xl font-bold text-gray-800">생성된 융합교육 시나리오</h3>
+              <h3 className="text-xl font-bold text-gray-800">📖 생성된 융합교육 시나리오</h3>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm border">
                <div className="prose prose-lg max-w-none prose-headings:text-gray-800 prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:mb-1">
@@ -306,7 +306,7 @@ AI 윤리 고려, 협력 활동 강조.`;
               onClick={() => setShowFeedback(!showFeedback)}
               className="mt-4 btn-ghost"
             >
-              {showFeedback ? "피드백 닫기" : "피드백으로 수정하기"}
+              {showFeedback ? "❌ 피드백 닫기" : "💬 피드백으로 수정하기"}
             </button>
 
             {showFeedback && (
@@ -359,7 +359,7 @@ AI 윤리 고려, 협력 활동 강조.`;
 
                 <div className="flex gap-2">
                   <button onClick={handleFeedbackSubmit} className="btn-primary flex-1">
-                    피드백 반영 재생성
+                    🔄 피드백 반영 재생성
                   </button>
                   <button onClick={() => setShowFeedback(false)} className="btn-ghost">
                     취소
@@ -378,7 +378,7 @@ AI 윤리 고려, 협력 활동 강조.`;
                 className="btn-primary flex-1"
                 disabled={!scenario || generating}
               >
-                지도안 생성하기
+                📄 지도안 생성하기
               </button>
             </div>
 

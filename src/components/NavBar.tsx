@@ -13,7 +13,7 @@ const tabs = [
 export default function NavBar() {
   const pathname = usePathname();
   return (
-    <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-warm/70 bg-warm/90 border-b border-ink/10">
+    <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-cream/70 bg-cream/90 border-b border-ink/10">
       <nav className="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between">
         <Link href="/" className="font-semibold tracking-tight text-ink/90 hover:text-ink">
           AI 융합 수업지도안 도구

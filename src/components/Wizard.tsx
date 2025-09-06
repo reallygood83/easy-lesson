@@ -45,13 +45,13 @@ export default function Wizard({ children, className = "" }: WizardProps) {
     <div className={`space-y-8 ${className}`}>
       {/* 진행 바 */}
       <div className="mb-8">
-        <div className="flex justify-between text-sm text-[var(--text-muted)] mb-2">
+        <div className="flex justify-between text-sm text-ink/70 mb-2">
           <span>Step {currentStep} of 4</span>
           <span>{(steps[currentStep - 1] as React.ReactElement<{ label: string }>)?.props.label || `Step ${currentStep}`}</span>
         </div>
-        <div className="w-full bg-[var(--rose-100)] rounded-full h-2">
+        <div className="w-full bg-rose-100 rounded-full h-2">
           <div 
-            className="bg-[var(--rose-500)] h-2 rounded-full transition-all duration-300 ease-in-out"
+            className="bg-rose-300 h-2 rounded-full transition-all duration-300 ease-in-out"
             style={{ width: `${(currentStep / 4) * 100}%` }}
           />
         </div>
@@ -62,7 +62,7 @@ export default function Wizard({ children, className = "" }: WizardProps) {
         {steps[currentStep - 1]}
         
         {/* 네비게이션 버튼 */}
-        <div className="flex justify-between mt-8 pt-4 border-t border-[var(--rose-200)]/50">
+        <div className="flex justify-between mt-8 pt-4 border-t border-rose-200/50">
           {currentStep > 1 && (
             <button
               onClick={handlePrev}
@@ -108,14 +108,14 @@ export default function Wizard({ children, className = "" }: WizardProps) {
         </div>
         <div className="md:col-span-1 hidden md:block">
           <div className="sticky top-4 space-y-2">
-            <h3 className="font-semibold text-[var(--text-strong)] mb-2">진행 상황</h3>
+            <h3 className="font-semibold text-ink mb-2">진행 상황</h3>
             {Array.from({ length: 4 }, (_, i) => i + 1).map(step => (
               <div key={step} className="flex items-center gap-2 text-sm">
                 <div className={`w-2 h-2 rounded-full ${
-                  step < currentStep ? 'bg-[var(--rose-500)]' : 
-                  step === currentStep ? 'bg-[var(--rose-300)]' : 'bg-[var(--rose-100)]'
+                  step < currentStep ? 'bg-rose-300' : 
+                  step === currentStep ? 'bg-rose-200' : 'bg-rose-100'
                 }`} />
-                <span className={step === currentStep ? "font-medium text-[var(--text-strong)]" : "text-[var(--text-muted)]"}>
+                <span className={step === currentStep ? "font-medium text-ink" : "text-ink/70"}>
                   Step {step}
                 </span>
               </div>
@@ -150,7 +150,7 @@ export function WizardStep({ children, label, onValidate }: React.PropsWithChild
 
   return (
     <div data-step={stepNum}>
-      <h2 className="text-2xl font-bold mb-4 text-[var(--text-strong)]">{label}</h2>
+      <h2 className="text-2xl font-bold mb-4 text-ink">{label}</h2>
       {children}
     </div>
   );

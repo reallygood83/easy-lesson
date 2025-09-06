@@ -32,10 +32,10 @@ export default function Home() {
             API 키 설정
           </button>
           <button
-            onClick={() => setCurrentStep(1)}
+            onClick={() => router.push("/idea")}
             className="btn-primary px-8 py-3 flex-1"
           >
-            마법사 시작하기 →
+마법사 시작하기 →
           </button>
         </div>
         <p className="text-xs text-[var(--text-muted)] mt-4">

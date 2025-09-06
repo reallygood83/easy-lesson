@@ -65,31 +65,31 @@ export default function IdeaStep() {
   };
 
   return (
-    <WizardStep label="1단계 · 프로젝트 아이디어 생성">
+    <WizardStep label="💡 1단계 · 프로젝트 아이디어 생성">
       <div className="space-y-6">
-        <p className="text-[var(--text-muted)]">키워드와 학년을 입력하면 AI가 융합 프로젝트 아이디어 3개를 자동 생성합니다.</p>
+        <p className="text-ink/70">🎯 키워드와 학년을 입력하면 AI가 융합 프로젝트 아이디어 3개를 자동 생성합니다.</p>
 
         <div className="card p-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-strong)] mb-2">
-                키워드 (쉼표로 구분)
+              <label className="block text-sm font-medium text-ink mb-2">
+                🏷️ 키워드 (쉼표로 구분)
               </label>
               <input
                 type="text"
                 value={inputKeywords}
                 onChange={(e) => setInputKeywords(e.target.value)}
                 placeholder="예: 로봇, 환경, 팀워크"
-                className="w-full rounded-md border border-[var(--rose-200)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--rose-300)]"
+                className="w-full rounded-md border border-rose-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-300"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--text-strong)] mb-2">학년군</label>
+              <label className="block text-sm font-medium text-ink mb-2">🎓 학년군</label>
               <select
                 value={gradeBand}
                 onChange={(e) => setGradeBand(e.target.value as "1-2" | "3-4" | "5-6")}
-                className="w-full rounded-md border border-[var(--rose-200)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--rose-300)]"
+                className="w-full rounded-md border border-rose-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-300"
               >
                 <option value="">학년 선택</option>
                 <option value="1-2">1-2학년</option>
@@ -103,7 +103,7 @@ export default function IdeaStep() {
               disabled={!inputKeywords.trim() || !gradeBand || loading}
               className="w-full btn-primary disabled:opacity-50"
             >
-              {loading ? "생성 중..." : "AI 아이디어 생성하기"}
+              {loading ? "🔄 생성 중..." : "🤖 AI 아이디어 생성하기"}
             </button>
 
             {error && (
@@ -116,20 +116,20 @@ export default function IdeaStep() {
 
         {localIdeas.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-[var(--text-strong)]">추천 프로젝트 아이디어 (3개)</h2>
+            <h2 className="text-xl font-semibold text-ink">✨ 추천 프로젝트 아이디어 (3개)</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {localIdeas.map((idea: LessonIdea) => (
                 <div key={idea.id} className="card p-4 hover:shadow-md transition-shadow border rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2 text-[var(--text-strong)]">{idea.title}</h3>
-                  <p className="text-[var(--text-muted)] mb-3 leading-relaxed">{idea.description}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-ink">{idea.title}</h3>
+                  <p className="text-ink/70 mb-3 leading-relaxed">{idea.description}</p>
                   <div className="space-y-2 text-sm mb-4">
-                    <h4 className="font-medium text-[var(--rose-700)]">차시별 개요:</h4>
+                    <h4 className="font-medium text-rose-300">📚 차시별 개요:</h4>
                     {idea.sessions.map((session: { title: string; overview: string }, idx: number) => (
-                      <div key={idx} className="flex items-start gap-2 pl-2 border-l-2 border-[var(--rose-200)]">
-                        <span className="w-6 font-medium text-[var(--rose-600)] flex-shrink-0">{idx + 1}차시</span>
+                      <div key={idx} className="flex items-start gap-2 pl-2 border-l-2 border-rose-200">
+                        <span className="w-6 font-medium text-rose-300 flex-shrink-0">{idx + 1}차시</span>
                         <div>
                           <div className="font-medium">{session.title}</div>
-                          <div className="text-[var(--text-muted)]">{session.overview}</div>
+                          <div className="text-ink/70">{session.overview}</div>
                         </div>
                       </div>
                     ))}
@@ -138,7 +138,7 @@ export default function IdeaStep() {
                     onClick={() => handleSelectIdea(idea)}
                     className="w-full btn-secondary"
                   >
-                    이 아이디어 선택
+                    ✅ 이 아이디어 선택
                   </button>
                 </div>
               ))}
