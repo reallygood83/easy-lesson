@@ -72,7 +72,7 @@ export default function ScenarioStep() {
     if (selectedIdea && keywords.length > 0 && gradeBand && autoStandards.length === 0) {
       loadAutoStandards();
     }
-  }, [selectedIdea, keywords, gradeBand, autoStandards.length]);
+  }, [selectedIdea, keywords, gradeBand, autoStandards.length, loadAutoStandards]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // validation 체크
   useEffect(() => {
