@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useLessonStore, AutoStandard } from "@/store/useLessonStore";
 import { useGemini } from "@/lib/gemini";
 import { WizardStep } from "@/components/Wizard";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // 타입 정의 (StandardsPicker에서 가져온 타입)
 type StandardItem = {
@@ -273,9 +275,31 @@ AI 윤리 고려, 협력 활동 강조.`;
 
         {/* 생성된 시나리오 표시 */}
         {scenario && (
-          <div className="card p-6">
-            <h3 className="font-semibold mb-4">생성된 융합교육 시나리오</h3>
-            <div className="prose max-w-none whitespace-pre-wrap">{scenario}</div>
+          <div className="card p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-blue-500">
+            <div className="flex items-center mb-6">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+              <h3 className="text-xl font-bold text-gray-800">생성된 융합교육 시나리오</h3>
+            </div>
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+               <div className="prose prose-lg max-w-none prose-headings:text-gray-800 prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-strong:font-semibold prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:mb-1">
+                 <ReactMarkdown 
+                   remarkPlugins={[remarkGfm]}
+                   components={{
+                     h1: ({children}) => <h1 className="text-2xl font-bold text-blue-800 mb-4 pb-2 border-b-2 border-blue-200">{children}</h1>,
+                     h2: ({children}) => <h2 className="text-xl font-bold text-blue-700 mb-3 mt-6">{children}</h2>,
+                     h3: ({children}) => <h3 className="text-lg font-semibold text-blue-600 mb-2 mt-4">{children}</h3>,
+                     p: ({children}) => <p className="text-gray-700 leading-relaxed mb-3">{children}</p>,
+                     ul: ({children}) => <ul className="list-disc list-inside space-y-1 mb-4 ml-4">{children}</ul>,
+                     ol: ({children}) => <ol className="list-decimal list-inside space-y-1 mb-4 ml-4">{children}</ol>,
+                     li: ({children}) => <li className="text-gray-700 leading-relaxed">{children}</li>,
+                     strong: ({children}) => <strong className="font-semibold text-gray-900 bg-yellow-100 px-1 rounded">{children}</strong>,
+                     blockquote: ({children}) => <blockquote className="border-l-4 border-blue-300 pl-4 italic text-gray-600 bg-blue-50 py-2 my-4 rounded-r">{children}</blockquote>
+                   }}
+                 >
+                   {scenario}
+                 </ReactMarkdown>
+               </div>
+             </div>
             
             {/* 피드백 UI */}
             <button
